@@ -26,7 +26,8 @@ const ProductSchema = new mongoose.Schema(
     ],
     brand: String,
     totalStock: Number,
-    averageReview: Number
+    averageReview: Number,
+    featured: { type: Boolean}
   },
   { timestamps: true }
 );
