@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { Card, CardContent, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { brandOptionsMap, categoryOptionsMap } from "@/config";
@@ -44,16 +45,24 @@ function ShoppingProductTile({
           <div className="flex justify-between items-center mb-2">
             <span
               className={`${
-                product?.salePrice > 0 ? "line-through" : ""
+                product?.salePrice && Object.keys(product.salePrice).length > 0 ? "line-through" : ""
               } text-lg font-semibold text-primary`}
             >
-              ${product?.price}
+              {Object.entries(product?.price || {}).map(([size, price]) => (
+                <div key={size}>
+                  Size {size}: ${price}
+                </div>
+              ))}
             </span>
-            {product?.salePrice > 0 ? (
-              <span className="text-lg font-semibold text-primary">
-                ${product?.salePrice}
+            {product?.salePrice && Object.keys(product.salePrice).length > 0 && (
+              <span className="text-lg font-semibold text-red-500">
+                {Object.entries(product.salePrice).map(([size, salePrice]) => (
+                  <div key={size}>
+                    Sale Size {size}: ${salePrice}
+                  </div>
+                ))}
               </span>
-            ) : null}
+            )}
           </div>
         </CardContent>
       </div>
