@@ -23,31 +23,14 @@ const handleImageUpload = async (req, res) => {
 //add a new product
 const addProduct = async (req, res) => {
   try {
-    const {
-      image,
-      title,
-      description,
-      category,
-      brand,
-      price,
-      salePrice,
-      totalStock,
-      averageReview,
-    } = req.body;
+    const payload = req.body
 
-    console.log(averageReview, "averageReview");
+    const { Images } = req.files;
 
-    const newlyCreatedProduct = new Product({
-      image,
-      title,
-      description,
-      category,
-      brand,
-      price,
-      salePrice,
-      totalStock,
-      averageReview,
-    });
+    if(Images){
+      payload.images = Images.map((image) => image.path);
+    }
+    const newlyCreatedProduct = new Product(payload);
 
     await newlyCreatedProduct.save();
     res.status(201).json({
