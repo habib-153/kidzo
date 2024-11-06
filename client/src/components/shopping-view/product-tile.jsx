@@ -1,31 +1,62 @@
 /* eslint-disable react/prop-types */
+import { useDispatch, useSelector } from 'react-redux';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { StarIcon, ShoppingBag } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { brandOptionsMap, categoryOptionsMap } from "@/config";
 
-const ShoppingProductTile = ({ product, handleGetProductDetails, handleAddtoCart }) => {
-  const basePrice = product?.price?.[Object.keys(product.price)[0]] || 0;
-  const salePrice = product?.sale_price?.[Object.keys(product.sale_price)[0]] || 0;
-  const hasDiscount = salePrice < basePrice;
+const ShoppingProductTile = ({ product,handleAddtoCart,handleGetProductDetails, }) => {
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+  const { cartItems } = useSelector((state) => state.shopCart);
+  const { toast } = useToast();
 
-  const getInventoryStatus = () => {
-    if (product?.inventory.every(item => !item.inStock)) {
-      return { type: 'outOfStock', text: 'Out Of Stock', color: 'bg-red-500/90 hover:bg-red-600' };
+  const basePrice = Object.entries(product?.price || {});
+  const salePrice = Object.entries(product?.sale_price || {});
+  const hasDiscount = salePrice.some(([size, price]) => price < (product?.price[size] || 0));
+  const isOutOfStock = product?.inventory.every(item => !item.inStock);
+  const hasLowStock = product?.inventory.some(item => item.quantity < 10);
+
+
+  const handleAddToCart = (productId, totalStock) => {
+    let currentCartItems = cartItems.items || [];
+
+    if (currentCartItems.length) {
+      const itemIndex = currentCartItems.findIndex(item => item.productId === productId);
+      if (itemIndex > -1) {
+        const quantity = currentCartItems[itemIndex].quantity;
+        if (quantity + 1 > totalStock) {
+          toast({
+            title: `Only ${quantity} quantity available`,
+            variant: "destructive",
+          });
+          return;
+        }
+      }
     }
-    if (product?.inventory.some(item => item.quantity < 10)) {
-      return { type: 'lowStock', text: 'Low Stock', color: 'bg-amber-500/90 hover:bg-amber-600' };
-    }
-    if (hasDiscount) {
-      return { type: 'sale', text: 'Sale', color: 'bg-pink-500/90 hover:bg-pink-600' };
-    }
-    return null;
+
+    dispatch(handleAddtoCart({
+      userId: user?.id,
+      productId: productId,
+      quantity: 1,
+    })).then((data) => {
+      if (data?.payload?.success) {
+
+
+
+        //etar functionality thik korte hobe
+        dispatch(cartItems(user?.id));
+        toast({
+          title: "Added to cart successfully",
+        });
+      }
+    });
   };
 
-  const inventoryStatus = getInventoryStatus();
-
   return (
-    <Card className="group w-full max-w-sm mx-auto overflow-hidden transition-all duration-300 hover:shadow-lg bg-white">
+    <Card className="group w-full max-w-sm mx-auto overflow-hidden transition-all duration-300 hover:shadow-lg bg-white/95">
       <div 
         onClick={() => handleGetProductDetails(product?._id)}
         className="cursor-pointer"
@@ -36,40 +67,44 @@ const ShoppingProductTile = ({ product, handleGetProductDetails, handleAddtoCart
             alt={product?.name}
             className="w-full h-[300px] object-cover transition-transform duration-300 group-hover:scale-105"
           />
-          {inventoryStatus && (
-            <Badge className={`absolute top-3 left-3 ${inventoryStatus.color}`}>
-              {inventoryStatus.text}
+          {isOutOfStock ? (
+            <Badge className="absolute top-3 left-3 bg-neutral-500/90 hover:bg-neutral-600">
+              Out Of Stock
             </Badge>
-          )}
+          ) : hasLowStock ? (
+            <Badge className="absolute top-3 left-3 bg-amber-400/90 hover:bg-amber-500">
+              Low Stock
+            </Badge>
+          ) : hasDiscount ? (
+            <Badge className="absolute top-3 left-3 bg-rose-200/90 hover:bg-rose-300">
+              Sale
+            </Badge>
+          ) : null}
         </div>
-        
         <CardContent className="p-6">
-          <h2 className="text-xl font-bold mb-2 text-gray-800 group-hover:text-pink-600 transition-colors">
+          <h2 className="text-xl font-bold mb-2 text-neutral-800 group-hover:text-rose-300 transition-colors">
             {product?.name}
           </h2>
-          
           <div className="flex justify-between items-center mb-3">
-            <span className="text-sm text-gray-600">
-              {product?.category}
+            <span className="text-sm text-neutral-600">
+              {categoryOptionsMap[product?.category]}
             </span>
-            <div className="flex items-center gap-2">
-              <StarIcon className="w-4 h-4 text-yellow-400 fill-current" />
-              <span className="text-sm text-gray-600">4.5</span>
-            </div>
+            <span className="text-sm text-neutral-600">
+              {brandOptionsMap[product?.brand]}
+            </span>
           </div>
-
-          <div className="space-y-2">
-            {Object.entries(product?.price || {}).map(([size, price]) => (
+          <div className="flex flex-col gap-1">
+            {basePrice.map(([size, price]) => (
               <div key={size} className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Size {size}</span>
+                <span className="text-sm text-neutral-600">Size {size}</span>
                 <div className="flex items-baseline gap-2">
-                  {product?.sale_price?.[size] < price && (
-                    <span className="text-sm text-gray-400 line-through">
+                  {product?.sale_price[size] < price && (
+                    <span className="text-sm text-neutral-400 line-through">
                       ${price}
                     </span>
                   )}
-                  <span className="text-lg font-bold text-pink-600">
-                    ${product?.sale_price?.[size] || price}
+                  <span className="text-lg font-semibold text-rose-300">
+                    ${product?.sale_price[size] || price}
                   </span>
                 </div>
               </div>
@@ -77,15 +112,14 @@ const ShoppingProductTile = ({ product, handleGetProductDetails, handleAddtoCart
           </div>
         </CardContent>
       </div>
-
-      <CardFooter className="p-4 bg-gray-50">
+      <CardFooter className="p-4 bg-neutral-50">
         <Button
-          onClick={() => handleAddtoCart(product?._id)}
-          disabled={product?.inventory.every(item => !item.inStock)}
-          className="w-full bg-pink-600 hover:bg-pink-700 text-white flex items-center gap-2 disabled:opacity-50"
+          onClick={() => handleAddToCart(product?._id, product?.totalStock)}
+          disabled={isOutOfStock}
+          className="w-full bg-rose-200 hover:bg-rose-300 text-neutral-700 flex items-center gap-2 transition-colors"
         >
           <ShoppingBag className="w-4 h-4" />
-          {product?.inventory.every(item => !item.inStock) ? 'Out of Stock' : 'Add to Cart'}
+          {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
         </Button>
       </CardFooter>
     </Card>
