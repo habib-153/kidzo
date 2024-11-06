@@ -1,224 +1,240 @@
-import { StarIcon } from "lucide-react";
-import { Avatar, AvatarFallback } from "../ui/avatar";
-import { Button } from "../ui/button";
-import { Dialog, DialogContent } from "../ui/dialog";
-import { Separator } from "../ui/separator";
-import { Input } from "../ui/input";
-import { useDispatch, useSelector } from "react-redux";
-import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
-import { useToast } from "../ui/use-toast";
-import { setProductDetails } from "@/store/shop/products-slice";
-import { Label } from "../ui/label";
-import StarRatingComponent from "../common/star-rating";
-import { useEffect, useState } from "react";
-import { addReview, getReviews } from "@/store/shop/review-slice";
+/* eslint-disable react/prop-types */
+import { useState } from 'react';
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { StarIcon, Ruler, Heart } from "lucide-react";
 
-function ProductDetailsDialog({ open, setOpen, productDetails }) {
+const sizeChartData = {
+  "24": { chest: "36-38", waist: "28-30", hip: "38-40" },
+  "30": { chest: "40-42", waist: "32-34", hip: "42-44" }
+};
+
+const ProductDetailsDialog = ({ open, setOpen, productDetails, onAddToCart }) => {
+  const [selectedSize, setSelectedSize] = useState(null);
   const [reviewMsg, setReviewMsg] = useState("");
   const [rating, setRating] = useState(0);
-  const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
-  const { cartItems } = useSelector((state) => state.shopCart);
-  const { reviews } = useSelector((state) => state.shopReview);
+  const [showSizeChart, setShowSizeChart] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const { toast } = useToast();
+  const handleSizeSelect = (size) => {
+    setSelectedSize(size);
+  };
 
-  function handleRatingChange(getRating) {
-    console.log(getRating, "getRating");
-
-    setRating(getRating);
-  }
-
-  function handleAddToCart(getCurrentProductId, getTotalStock) {
-    let getCartItems = cartItems.items || [];
-
-    if (getCartItems.length) {
-      const indexOfCurrentItem = getCartItems.findIndex(
-        (item) => item.productId === getCurrentProductId
-      );
-      if (indexOfCurrentItem > -1) {
-        const getQuantity = getCartItems[indexOfCurrentItem].quantity;
-        if (getQuantity + 1 > getTotalStock) {
-          toast({
-            title: `Only ${getQuantity} quantity can be added for this item`,
-            variant: "destructive",
-          });
-
-          return;
-        }
-      }
+  const handleAddToCart = () => {
+    if (selectedSize && onAddToCart) {
+      onAddToCart(productDetails?._id, selectedSize);
     }
-    dispatch(
-      addToCart({
-        userId: user?.id,
-        productId: getCurrentProductId,
-        quantity: 1,
-      })
-    ).then((data) => {
-      if (data?.payload?.success) {
-        dispatch(fetchCartItems(user?.id));
-        toast({
-          title: "Product is added to cart",
-        });
-      }
-    });
-  }
-
-  function handleDialogClose() {
-    setOpen(false);
-    dispatch(setProductDetails());
-    setRating(0);
-    setReviewMsg("");
-  }
-
-  function handleAddReview() {
-    dispatch(
-      addReview({
-        productId: productDetails?._id,
-        userId: user?.id,
-        userName: user?.userName,
-        reviewMessage: reviewMsg,
-        reviewValue: rating,
-      })
-    ).then((data) => {
-      if (data.payload.success) {
-        setRating(0);
-        setReviewMsg("");
-        dispatch(getReviews(productDetails?._id));
-        toast({
-          title: "Review added successfully!",
-        });
-      }
-    });
-  }
-
-  useEffect(() => {
-    if (productDetails !== null) dispatch(getReviews(productDetails?._id));
-  }, [productDetails]);
-
-  console.log(reviews, "reviews");
-
-  const averageReview =
-    reviews && reviews.length > 0
-      ? reviews.reduce((sum, reviewItem) => sum + reviewItem.reviewValue, 0) /
-        reviews.length
-      : 0;
+  };
 
   return (
-    <Dialog open={open} onOpenChange={handleDialogClose}>
-      <DialogContent className="grid grid-cols-2 gap-8 sm:p-12 max-w-[90vw] sm:max-w-[80vw] lg:max-w-[70vw]">
-        <div className="relative overflow-hidden rounded-lg">
-          <img
-            src={productDetails?.image}
-            alt={productDetails?.title}
-            width={600}
-            height={600}
-            className="aspect-square w-full object-cover"
-          />
-        </div>
-        <div className="">
-          <div>
-            <h1 className="text-3xl font-extrabold">{productDetails?.title}</h1>
-            <p className="text-muted-foreground text-2xl mb-5 mt-4">
-              {productDetails?.description}
-            </p>
-          </div>
-          <div className="flex items-center justify-between">
-            <p
-              className={`text-3xl font-bold text-primary ${
-                productDetails?.salePrice > 0 ? "line-through" : ""
-              }`}
-            >
-              ${productDetails?.price}
-            </p>
-            {productDetails?.salePrice > 0 ? (
-              <p className="text-2xl font-bold text-muted-foreground">
-                ${productDetails?.salePrice}
-              </p>
-            ) : null}
-          </div>
-          <div className="flex items-center gap-2 mt-2">
-            <div className="flex items-center gap-0.5">
-              <StarRatingComponent rating={averageReview} />
-            </div>
-            <span className="text-muted-foreground">
-              ({averageReview.toFixed(2)})
-            </span>
-          </div>
-          <div className="mt-5 mb-5">
-            {productDetails?.totalStock === 0 ? (
-              <Button className="w-full opacity-60 cursor-not-allowed">
-                Out of Stock
-              </Button>
-            ) : (
-              <Button
-                className="w-full"
-                onClick={() =>
-                  handleAddToCart(
-                    productDetails?._id,
-                    productDetails?.totalStock
-                  )
-                }
-              >
-                Add to Cart
-              </Button>
-            )}
-          </div>
-          <Separator />
-          <div className="max-h-[300px] overflow-auto">
-            <h2 className="text-xl font-bold mb-4">Reviews</h2>
-            <div className="grid gap-6">
-              {reviews && reviews.length > 0 ? (
-                reviews.map((reviewItem) => (
-                  <div className="flex gap-4">
-                    <Avatar className="w-10 h-10 border">
-                      <AvatarFallback>
-                        {reviewItem?.userName[0].toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="grid gap-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold">{reviewItem?.userName}</h3>
-                      </div>
-                      <div className="flex items-center gap-0.5">
-                        <StarRatingComponent rating={reviewItem?.reviewValue} />
-                      </div>
-                      <p className="text-muted-foreground">
-                        {reviewItem.reviewMessage}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <h1>No Reviews</h1>
-              )}
-            </div>
-            <div className="mt-10 flex-col flex gap-2">
-              <Label>Write a review</Label>
-              <div className="flex gap-1">
-                <StarRatingComponent
-                  rating={rating}
-                  handleRatingChange={handleRatingChange}
-                />
-              </div>
-              <Input
-                name="reviewMsg"
-                value={reviewMsg}
-                onChange={(event) => setReviewMsg(event.target.value)}
-                placeholder="Write a review..."
+    <Dialog open={open} onOpenChange={() => {
+      setOpen(false);
+      setSelectedSize(null);
+      setShowSizeChart(false);
+    
+    }}>
+      <DialogContent className="max-w-[90vw] overflow-y-scroll sm:max-w-[80vw] lg:max-w-[70vw] p-0">
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Image Gallery */}
+          <div className="relative group">
+            <div className="aspect-square overflow-hidden rounded-l-lg relative">
+              <img
+                src={productDetails?.images[currentImageIndex]}
+                alt={productDetails?.name}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
               <Button
-                onClick={handleAddReview}
-                disabled={reviewMsg.trim() === ""}
+                variant="ghost"
+                className="absolute top-4 right-4 rounded-full p-2 bg-white/80 hover:bg-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Add wishlist functionality
+                }}
               >
-                Submit
+                <Heart className="w-5 h-5 text-pink-600" />
               </Button>
+            </div>
+            {productDetails?.images.length > 1 && (
+              <div className="flex gap-2 mt-4 px-4">
+                {productDetails.images.map((image, index) => (
+                  <button
+                    key={index}
+                    className={`w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${
+                      currentImageIndex === index ? 'border-pink-600' : 'border-transparent'
+                    }`}
+                    onClick={() => setCurrentImageIndex(index)}
+                  >
+                    <img
+                      src={image}
+                      alt={`Product view ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Product Info */}
+          <div className="p-8">
+            <div className="mb-8">
+              <div className="flex justify-between items-start mb-4">
+                <h1 className="text-3xl font-bold text-gray-800">
+                  {productDetails?.name}
+                </h1>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <StarIcon
+                      key={star}
+                      className="w-5 h-5 text-yellow-400 fill-current"
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              <p className="text-gray-600 mb-6">
+                {productDetails?.description}
+              </p>
+              
+              {/* Size Selection */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-sm font-medium">Select Size</Label>
+                  <Button
+                    variant="ghost"
+                    className="text-pink-600 flex items-center gap-1"
+                    onClick={() => setShowSizeChart(!showSizeChart)}
+                  >
+                    <Ruler className="w-4 h-4" />
+                    Size Guide
+                  </Button>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {Object.entries(productDetails?.price || {}).map(([size, price]) => {
+                    const isInStock = productDetails?.inventory.some(
+                      item => item.size === size && item.inStock
+                    );
+                    return (
+                      <Button
+                        key={size}
+                        variant={selectedSize === size ? "default" : "outline"}
+                        className={`px-6 ${
+                          selectedSize === size ? 'bg-pink-600 text-white' : 'text-gray-600'
+                        } ${!isInStock ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={() => isInStock && handleSizeSelect(size)}
+                        disabled={!isInStock}
+                      >
+                        {size}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Size Chart */}
+              {showSizeChart && (
+                <div className="mb-6 bg-gray-50 rounded-lg p-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-center">Size</TableHead>
+                        <TableHead className="text-center">Chest (in)</TableHead>
+                        <TableHead className="text-center">Waist (in)</TableHead>
+                        <TableHead className="text-center">Hip (in)</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {Object.entries(sizeChartData).map(([size, measurements]) => (
+                        <TableRow key={size}>
+                          <TableCell className="text-center font-medium">{size}</TableCell>
+                          <TableCell className="text-center">{measurements.chest}</TableCell>
+                          <TableCell className="text-center">{measurements.waist}</TableCell>
+                          <TableCell className="text-center">{measurements.hip}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+
+              {/* Price Display */}
+              <div className="mb-6">
+                <Label className="text-sm font-medium mb-2 block">Price</Label>
+                <div className="flex items-baseline gap-3">
+                  {selectedSize && productDetails?.sale_price?.[selectedSize] < productDetails?.price?.[selectedSize] && (
+                    <span className="text-2xl text-gray-400 line-through">
+                      ${productDetails?.price?.[selectedSize]}
+                    </span>
+                  )}
+                  <span className="text-3xl font-bold text-pink-600">
+                    {selectedSize 
+                      ? `$${productDetails?.sale_price?.[selectedSize] || productDetails?.price?.[selectedSize]}`
+                      : 'Select size to see price'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Add to Cart Button */}
+              <div className="grid gap-4">
+                <Button 
+                  className="w-full bg-pink-600 hover:bg-pink-700 text-white h-12 text-lg"
+                  disabled={!selectedSize}
+                  onClick={handleAddToCart}
+                >
+                  Add to Cart
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="w-full border-pink-600 text-pink-600 hover:bg-pink-50 h-12 text-lg"
+                >
+                  Add to Wishlist
+                </Button>
+              </div>
+
+              <Separator className="my-8" />
+
+              {/* Reviews Section */}
+              <div className="space-y-6">
+                <h2 className="text-xl font-bold text-gray-800">Customer Reviews</h2>
+                
+                {/* Review Form */}
+                <div className="space-y-4">
+                  <Label>Write a Review</Label>
+                  <div className="flex gap-1 mb-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <StarIcon
+                        key={star}
+                        className={`w-5 h-5 cursor-pointer ${
+                          star <= rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                        }`}
+                        onClick={() => setRating(star)}
+                      />
+                    ))}
+                  </div>
+                  <Input
+                    value={reviewMsg}
+                    onChange={(e) => setReviewMsg(e.target.value)}
+                    placeholder="Share your thoughts..."
+                    className="mb-2"
+                  />
+                  <Button 
+                    className="w-full bg-pink-600 hover:bg-pink-700 text-white"
+                    disabled={!rating || !reviewMsg.trim()}
+                  >
+                    Submit Review
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
-}
+};
 
 export default ProductDetailsDialog;

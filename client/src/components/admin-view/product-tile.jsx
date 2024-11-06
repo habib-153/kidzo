@@ -1,5 +1,4 @@
 /* eslint-disable react/prop-types */
-/* eslint-disable no-unused-vars */
 import { Button } from "../ui/button";
 import { Card, CardContent, CardFooter } from "../ui/card";
 
@@ -15,13 +14,13 @@ function AdminProductTile({
       <div>
         <div className="relative">
           <img
-            src={product?.image}
-            alt={product?.title}
+            src={product?.images[0]}
+            alt={product?.name}
             className="w-full h-[300px] object-cover rounded-t-lg"
           />
         </div>
         <CardContent>
-          <h2 className="text-xl font-bold mb-2 mt-2">{product?.title}</h2>
+          <h2 className="text-xl font-bold mb-2 mt-2">{product?.name}</h2>
           <div className="flex justify-between items-center mb-2">
             <span
               className={`${

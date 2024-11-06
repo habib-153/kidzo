@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
-import bannerOne from "../../assets/banner-1.webp";
-import bannerTwo from "../../assets/banner-2.webp";
-import bannerThree from "../../assets/banner-3.webp";
+// import bannerOne from "../../assets/banner-1.webp";
+// import bannerTwo from "../../assets/banner-2.webp";
+// import bannerThree from "../../assets/banner-3.webp";
 import {
   Airplay,
   BabyIcon,
@@ -122,15 +122,15 @@ function ShoppingHome() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="relative w-full p-2 h-64 md:h-[600px] overflow-hidden">
+      <div className="relative w-full h-[600px] overflow-hidden">
         {featureImageList && featureImageList.length > 0
           ? featureImageList.map((slide, index) => (
               <img
                 src={slide?.image}
                 key={index}
                 className={`${
-                  index === currentSlide ? "opacity-100 " : "opacity-0"
-                } absolute top-0 left-0 sm:w-96  md:w-full h-full object-cover transition-opacity duration-1000`}
+                  index === currentSlide ? "opacity-100" : "opacity-0"
+                } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
               />
             ))
           : null}
@@ -212,9 +212,9 @@ function ShoppingHome() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {productList && productList.length > 0
-              ? productList.map((productItem,i) => (
+              ? productList.map((productItem) => (
                 <ShoppingProductTile
-                  key={i}
+                  key={productItem}
                     handleGetProductDetails={handleGetProductDetails}
                     product={productItem}
                     handleAddtoCart={handleAddtoCart}
