@@ -1,6 +1,6 @@
-import { StarIcon } from "lucide-react";
+import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback } from "../ui/avatar";
-import { Button } from "../ui/button";
+import { Button, buttonVariants } from "../ui/button";
 import { Dialog, DialogContent } from "../ui/dialog";
 import { Separator } from "../ui/separator";
 import { Input } from "../ui/input";
@@ -10,12 +10,12 @@ import { useToast } from "../ui/use-toast";
 import { setProductDetails } from "@/store/shop/products-slice";
 import { Label } from "../ui/label";
 import StarRatingComponent from "../common/star-rating";
-import { useEffect, useState } from "react";
 import { addReview, getReviews } from "@/store/shop/review-slice";
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const [reviewMsg, setReviewMsg] = useState("");
   const [rating, setRating] = useState(0);
+  const [selectedSize, setSelectedSize] = useState(Object.keys(productDetails?.price)[0]);
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
@@ -24,21 +24,19 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const { toast } = useToast();
 
   function handleRatingChange(getRating) {
-    console.log(getRating, "getRating");
-
     setRating(getRating);
   }
 
-  function handleAddToCart(getCurrentProductId, getTotalStock) {
+  function handleAddToCart() {
     let getCartItems = cartItems.items || [];
 
     if (getCartItems.length) {
       const indexOfCurrentItem = getCartItems.findIndex(
-        (item) => item.productId === getCurrentProductId
+        (item) => item.productId === productDetails?._id
       );
       if (indexOfCurrentItem > -1) {
         const getQuantity = getCartItems[indexOfCurrentItem].quantity;
-        if (getQuantity + 1 > getTotalStock) {
+        if (getQuantity + 1 > productDetails?.inventory[0].quantity) {
           toast({
             title: `Only ${getQuantity} quantity can be added for this item`,
             variant: "destructive",
@@ -51,8 +49,9 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
     dispatch(
       addToCart({
         userId: user?.id,
-        productId: getCurrentProductId,
+        productId: productDetails?._id,
         quantity: 1,
+        size: selectedSize,
       })
     ).then((data) => {
       if (data?.payload?.success) {
@@ -96,8 +95,6 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
     if (productDetails !== null) dispatch(getReviews(productDetails?._id));
   }, [productDetails]);
 
-  console.log(reviews, "reviews");
-
   const averageReview =
     reviews && reviews.length > 0
       ? reviews.reduce((sum, reviewItem) => sum + reviewItem.reviewValue, 0) /
@@ -109,8 +106,8 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       <DialogContent className="grid grid-cols-2 gap-8 sm:p-12 max-w-[90vw] sm:max-w-[80vw] lg:max-w-[70vw]">
         <div className="relative overflow-hidden rounded-lg">
           <img
-            src={productDetails?.image}
-            alt={productDetails?.title}
+            src={productDetails?.images[0]}
+            alt={productDetails?.name}
             width={600}
             height={600}
             className="aspect-square w-full object-cover"
@@ -118,7 +115,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
         </div>
         <div className="">
           <div>
-            <h1 className="text-3xl font-extrabold">{productDetails?.title}</h1>
+            <h1 className="text-3xl font-extrabold">{productDetails?.name}</h1>
             <p className="text-muted-foreground text-2xl mb-5 mt-4">
               {productDetails?.description}
             </p>
@@ -126,14 +123,14 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           <div className="flex items-center justify-between">
             <p
               className={`text-3xl font-bold text-primary ${
-                productDetails?.salePrice > 0 ? "line-through" : ""
+                productDetails?.sale_price[selectedSize] > 0 ? "line-through" : ""
               }`}
             >
-              ${productDetails?.price}
+              ${productDetails?.price[selectedSize]}
             </p>
-            {productDetails?.salePrice > 0 ? (
+            {productDetails?.sale_price[selectedSize] > 0 ? (
               <p className="text-2xl font-bold text-muted-foreground">
-                ${productDetails?.salePrice}
+                ${productDetails?.sale_price[selectedSize]}
               </p>
             ) : null}
           </div>
@@ -145,20 +142,27 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
               ({averageReview.toFixed(2)})
             </span>
           </div>
-          <div className="mt-5 mb-5">
-            {productDetails?.totalStock === 0 ? (
-              <Button className="w-full opacity-60 cursor-not-allowed">
+          <div className="mt-5 mb-5 grid grid-cols-2 sm:flex sm:flex-row sm:items-center sm:space-x-4">
+            <div className="mb-4 sm:mb-0">
+              {Object.keys(productDetails?.price).map((size) => (
+                <Button
+                  key={size}
+                  variant={selectedSize === size ? "primary" : "outline"}
+                  onClick={() => setSelectedSize(size)}
+                  className={`mr-2 mb-2 ${buttonVariants({ variant: 'outline' })}`}
+                >
+                  {size}
+                </Button>
+              ))}
+            </div>
+            {productDetails?.inventory[0].quantity === 0 ? (
+              <Button className="w-full sm:w-auto opacity-60 cursor-not-allowed">
                 Out of Stock
               </Button>
             ) : (
               <Button
-                className="w-full"
-                onClick={() =>
-                  handleAddToCart(
-                    productDetails?._id,
-                    productDetails?.totalStock
-                  )
-                }
+                className="w-full sm:w-auto"
+                onClick={handleAddToCart}
               >
                 Add to Cart
               </Button>
@@ -170,7 +174,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
             <div className="grid gap-6">
               {reviews && reviews.length > 0 ? (
                 reviews.map((reviewItem) => (
-                  <div className="flex gap-4">
+                  <div key={reviewItem._id} className="flex gap-4">
                     <Avatar className="w-10 h-10 border">
                       <AvatarFallback>
                         {reviewItem?.userName[0].toUpperCase()}
