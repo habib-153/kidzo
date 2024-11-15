@@ -1,5 +1,6 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -68,17 +69,13 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
     }
 
     dispatch(addToCart({
-      userId: user?.id,
       productId: productDetails._id,
       quantity: quantity,
       size: selectedSize,
-    })).then((data) => {
-      if (data?.payload?.success) {
-        dispatch(fetchCartItems(user?.id));
-        toast({
-          title: "Added to cart successfully",
-        });
-      }
+    }));
+    dispatch(fetchCartItems());
+    toast({
+      title: "Added to cart successfully",
     });
   };
 
@@ -116,6 +113,9 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
   const averageRating = reviews?.length 
     ? (reviews.reduce((sum, review) => sum + review.reviewValue, 0) / reviews.length).toFixed(1)
     : 0;
+
+  const inventory = selectedSize ? productDetails.inventory.find(item => item.size === selectedSize) : null;
+  const maxQuantity = inventory ? inventory.quantity : 0;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -282,12 +282,16 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => setQuantity(quantity + 1)}
+                    onClick={() => setQuantity(Math.min(quantity + 1, maxQuantity))}
                     className="text-neutral-600"
+                    disabled={quantity >= maxQuantity}
                   >
                     +
                   </Button>
                 </div>
+                {quantity >= maxQuantity && (
+                  <p className="text-sm text-red-500 mt-1">Maximum quantity reached</p>
+                )}
               </div>
 
               {/* Add to Cart Button */}

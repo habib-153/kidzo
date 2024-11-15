@@ -1,15 +1,14 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useDispatch, useSelector } from 'react-redux';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingBag } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { brandOptionsMap, categoryOptionsMap } from "@/config";
 
-const ShoppingProductTile = ({ product,handleAddtoCart,handleGetProductDetails, }) => {
+const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
   const { toast } = useToast();
 
@@ -18,42 +17,6 @@ const ShoppingProductTile = ({ product,handleAddtoCart,handleGetProductDetails, 
   const hasDiscount = salePrice.some(([size, price]) => price < (product?.price[size] || 0));
   const isOutOfStock = product?.inventory.every(item => !item.inStock);
   const hasLowStock = product?.inventory.some(item => item.quantity < 10);
-
-
-  const handleAddToCart = (productId, totalStock) => {
-    let currentCartItems = cartItems.items || [];
-
-    if (currentCartItems.length) {
-      const itemIndex = currentCartItems.findIndex(item => item.productId === productId);
-      if (itemIndex > -1) {
-        const quantity = currentCartItems[itemIndex].quantity;
-        if (quantity + 1 > totalStock) {
-          toast({
-            title: `Only ${quantity} quantity available`,
-            variant: "destructive",
-          });
-          return;
-        }
-      }
-    }
-
-    dispatch(handleAddtoCart({
-      userId: user?.id,
-      productId: productId,
-      quantity: 1,
-    })).then((data) => {
-      if (data?.payload?.success) {
-
-
-
-        //etar functionality thik korte hobe
-        dispatch(cartItems(user?.id));
-        toast({
-          title: "Added to cart successfully",
-        });
-      }
-    });
-  };
 
   return (
     <Card className="group w-full max-w-sm mx-auto overflow-hidden transition-all duration-300 hover:shadow-lg bg-white/95">
@@ -114,12 +77,10 @@ const ShoppingProductTile = ({ product,handleAddtoCart,handleGetProductDetails, 
       </div>
       <CardFooter className="p-4 bg-neutral-50">
         <Button
-          onClick={() => handleAddToCart(product?._id, product?.totalStock)}
-          disabled={isOutOfStock}
+          onClick={() => handleGetProductDetails(product?._id)}
           className="w-full bg-rose-200 hover:bg-rose-300 text-neutral-700 flex items-center gap-2 transition-colors"
         >
-          <ShoppingBag className="w-4 h-4" />
-          {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+          View Details
         </Button>
       </CardFooter>
     </Card>

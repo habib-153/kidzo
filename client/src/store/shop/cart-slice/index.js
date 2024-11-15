@@ -1,116 +1,60 @@
-import axios from "axios";
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   cartItems: [],
   isLoading: false,
 };
 
-export const addToCart = createAsyncThunk(
-  "cart/addToCart",
-  async ({ userId, productId, quantity }) => {
-    const response = await axios.post(
-      "http://localhost:5000/api/shop/cart/add",
-      {
-        userId,
-        productId,
-        quantity,
-      }
-    );
-
-    return response.data;
-  }
-);
-
-export const fetchCartItems = createAsyncThunk(
-  "cart/fetchCartItems",
-  async (userId) => {
-    const response = await axios.get(
-      `http://localhost:5000/api/shop/cart/get/${userId}`
-    );
-
-    return response.data;
-  }
-);
-
-export const deleteCartItem = createAsyncThunk(
-  "cart/deleteCartItem",
-  async ({ userId, productId }) => {
-    const response = await axios.delete(
-      `http://localhost:5000/api/shop/cart/${userId}/${productId}`
-    );
-
-    return response.data;
-  }
-);
-
-export const updateCartQuantity = createAsyncThunk(
-  "cart/updateCartQuantity",
-  async ({ userId, productId, quantity }) => {
-    const response = await axios.put(
-      "http://localhost:5000/api/shop/cart/update-cart",
-      {
-        userId,
-        productId,
-        quantity,
-      }
-    );
-
-    return response.data;
-  }
-);
-
 const shoppingCartSlice = createSlice({
   name: "shoppingCart",
   initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(addToCart.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(addToCart.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.cartItems = action.payload.data;
-      })
-      .addCase(addToCart.rejected, (state) => {
-        state.isLoading = false;
-        state.cartItems = [];
-      })
-      .addCase(fetchCartItems.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(fetchCartItems.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.cartItems = action.payload.data;
-      })
-      .addCase(fetchCartItems.rejected, (state) => {
-        state.isLoading = false;
-        state.cartItems = [];
-      })
-      .addCase(updateCartQuantity.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(updateCartQuantity.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.cartItems = action.payload.data;
-      })
-      .addCase(updateCartQuantity.rejected, (state) => {
-        state.isLoading = false;
-        state.cartItems = [];
-      })
-      .addCase(deleteCartItem.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(deleteCartItem.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.cartItems = action.payload.data;
-      })
-      .addCase(deleteCartItem.rejected, (state) => {
-        state.isLoading = false;
-        state.cartItems = [];
-      });
+  reducers: {
+    addToCart: (state, action) => {
+      const { productId, size, quantity } = action.payload;
+      const existingItem = state.cartItems.find(
+        (item) => item.productId === productId && item.size === size
+      );
+
+      if (existingItem) {
+        existingItem.quantity += quantity;
+      } else {
+        state.cartItems.push({ productId, size, quantity });
+      }
+    },
+    updateCartQuantity: (state, action) => {
+      const { productId, size, quantity } = action.payload;
+      const existingItem = state.cartItems.find(
+        (item) => item.productId === productId && item.size === size
+      );
+
+      if (existingItem) {
+        existingItem.quantity = quantity;
+      }
+    },
+    deleteCartItem: (state, action) => {
+      const { productId, size } = action.payload;
+      state.cartItems = state.cartItems.filter(
+        (item) => !(item.productId === productId && item.size === size)
+      );
+    },
+    fetchCartItems: (state) => {
+      // This can be used to initialize the cart from local storage if needed
+      const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+      state.cartItems = cartItems;
+    },
+    saveCartItems: (state) => {
+      // Save the cart items to local storage
+      localStorage.setItem("cartItems", JSON.stringify(state.cartItems));
+    },
   },
 });
+
+export const {
+  addToCart,
+  updateCartQuantity,
+  deleteCartItem,
+  fetchCartItems,
+  saveCartItems,
+} = shoppingCartSlice.actions;
 
 export default shoppingCartSlice.reducer;

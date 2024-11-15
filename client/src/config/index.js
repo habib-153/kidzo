@@ -1,4 +1,4 @@
-import { Search } from "lucide-react"
+//import { Search } from "lucide-react"
 
 export const registerFormControls = [
   {
@@ -115,31 +115,15 @@ export const shoppingViewHeaderMenuItems = [
     path: "/shop/listing",
   },
   {
-    id: "men",
-    label: "Men",
+    id: "boys",
+    label: "Boys",
     path: "/shop/listing",
   },
   {
-    id: "women",
-    label: "Women",
+    id: "girls",
+    label: "Girls",
     path: "/shop/listing",
   },
-  {
-    id: "kids",
-    label: "Kids",
-    path: "/shop/listing",
-  },
-  {
-    id: "footwear",
-    label: "Footwear",
-    path: "/shop/listing",
-  },
-  {
-    id: "accessories",
-    label: "Accessories",
-    path: "/shop/listing",
-  },
- 
 ];
 
 export const categoryOptionsMap = {
