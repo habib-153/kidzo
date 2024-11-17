@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { StarIcon, Ruler, ShoppingBag, Heart } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/components/ui/use-toast";
-import { addToCart, fetchCartItems } from '@/store/shop/cart-slice';
+import { addToCart } from '@/store/shop/cart-slice';
 import { setProductDetails } from '@/store/shop/products-slice';
 import { addReview, getReviews } from '@/store/shop/review-slice';
 
@@ -73,7 +73,7 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
       quantity: quantity,
       size: selectedSize,
     }));
-    dispatch(fetchCartItems());
+    //dispatch(fetchCartItems());
     toast({
       title: "Added to cart successfully",
     });

@@ -22,25 +22,34 @@ import { Skeleton } from "@/components/ui/skeleton";
 import PaypalReturnPage from "./pages/shopping-view/paypal-return";
 import PaymentSuccessPage from "./pages/shopping-view/payment-success";
 import SearchProducts from "./pages/shopping-view/search";
-import { fetchCartItems } from "./store/shop/cart-slice";
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
     (state) => state.auth
   );
+  const { cartItems } = useSelector((state) => state.shopCart);
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if (cartItems.length > 0) {
+        event.preventDefault();
+        event.returnValue =
+          "You have products in your cart. Are you sure you want to leave?";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [cartItems]);
   const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(checkAuth());
   }, [dispatch]);
 
-  useEffect(() => {
-    dispatch(fetchCartItems());
-  }, [dispatch]);
-
   if (isLoading) return <Skeleton className="w-[800] bg-black h-[600px]" />;
-
-  console.log(isLoading, user);
 
   return (
     <div className="flex flex-col overflow-hidden bg-white">
