@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { addFeatureImage, getFeatureImages } from "@/store/common-slice";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useToast } from "@/components/ui/use-toast";
 
 function AdminDashboard() {
   const [imageFile, setImageFile] = useState(null);
@@ -10,13 +11,16 @@ function AdminDashboard() {
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const dispatch = useDispatch();
   const { featureImageList } = useSelector((state) => state.commonFeature);
-
-  console.log(uploadedImageUrl, "uploadedImageUrl");
+  const [currentEditedId, setCurrentEditedId] = useState(null);
+  const { toast } = useToast();
 
   function handleUploadFeatureImage() {
     dispatch(addFeatureImage(uploadedImageUrl)).then((data) => {
       if (data?.payload?.success) {
         dispatch(getFeatureImages());
+        toast({
+          title: "Image Added Successfully",
+        });
         setImageFile(null);
         setUploadedImageUrl("");
       }
@@ -26,8 +30,6 @@ function AdminDashboard() {
   useEffect(() => {
     dispatch(getFeatureImages());
   }, [dispatch]);
-
-  console.log(featureImageList, "featureImageList");
 
   return (
     <div>
@@ -39,15 +41,19 @@ function AdminDashboard() {
         setImageLoadingState={setImageLoadingState}
         imageLoadingState={imageLoadingState}
         isCustomStyling={true}
-        // isEditMode={currentEditedId !== null}
+        isEditMode={currentEditedId !== null}
       />
-      <Button onClick={handleUploadFeatureImage} className="mt-5 w-full">
+      <Button
+        onClick={handleUploadFeatureImage}
+        className="mt-5 w-full"
+        disabled={!uploadedImageUrl || imageLoadingState}
+      >
         Upload
       </Button>
       <div className="flex flex-col gap-4 mt-5">
         {featureImageList && featureImageList.length > 0
           ? featureImageList.map((featureImgItem) => (
-              <div className="relative">
+              <div key={featureImgItem.id} className="relative">
                 <img
                   src={featureImgItem.image}
                   className="w-full h-[300px] object-cover rounded-t-lg"

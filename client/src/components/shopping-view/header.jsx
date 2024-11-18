@@ -110,8 +110,8 @@ function HeaderRightContent() {
         <UserCartWrapper
           setOpenCartSheet={setOpenCartSheet}
           cartItems={
-            cartItems && cartItems.items && cartItems.items.length > 0
-              ? cartItems.items
+            cartItems && cartItems.length > 0
+              ? cartItems
               : []
           }
         />
