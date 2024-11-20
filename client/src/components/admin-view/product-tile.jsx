@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { Button } from "../ui/button";
 import { Card, CardContent, CardFooter } from "../ui/card";
 
@@ -13,24 +14,39 @@ function AdminProductTile({
       <div>
         <div className="relative">
           <img
-            src={product?.image}
-            alt={product?.title}
+            src={product?.images[0]}
+            alt={product?.name}
             className="w-full h-[300px] object-cover rounded-t-lg"
           />
         </div>
         <CardContent>
-          <h2 className="text-xl font-bold mb-2 mt-2">{product?.title}</h2>
+          <h2 className="text-xl font-bold mb-2 mt-2">{product?.name}</h2>
           <div className="flex justify-between items-center mb-2">
             <span
               className={`${
-                product?.salePrice > 0 ? "line-through" : ""
+                product?.salePrice && Object.keys(product.salePrice).length > 0
+                  ? "line-through"
+                  : ""
               } text-lg font-semibold text-primary`}
             >
-              ${product?.price}
+              {Object.entries(product?.price || {}).map(([size, price]) => (
+                <div key={size}>
+                  Size {size}: ${price}
+                </div>
+              ))}
             </span>
-            {product?.salePrice > 0 ? (
-              <span className="text-lg font-bold">${product?.salePrice}</span>
-            ) : null}
+            {product?.salePrice &&
+              Object.keys(product.salePrice).length > 0 && (
+                <span className="text-lg font-semibold text-red-500">
+                  {Object.entries(product.salePrice).map(
+                    ([size, salePrice]) => (
+                      <div key={size}>
+                        Sale Size {size}: ${salePrice}
+                      </div>
+                    )
+                  )}
+                </span>
+              )}
           </div>
         </CardContent>
         <CardFooter className="flex justify-between items-center">

@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
-import bannerOne from "../../assets/banner-1.webp";
-import bannerTwo from "../../assets/banner-2.webp";
-import bannerThree from "../../assets/banner-3.webp";
+// import bannerOne from "../../assets/banner-1.webp";
+// import bannerTwo from "../../assets/banner-2.webp";
+// import bannerThree from "../../assets/banner-3.webp";
 import {
   Airplay,
-  BabyIcon,
+  // BabyIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CloudLightning,
@@ -15,7 +15,7 @@ import {
   ShoppingBasket,
   UmbrellaIcon,
   WashingMachine,
-  WatchIcon,
+  // WatchIcon,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -32,10 +32,10 @@ import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { getFeatureImages } from "@/store/common-slice";
 
 const categoriesWithIcon = [
-  { id: "men", label: "Men", icon: ShirtIcon },
-  { id: "women", label: "Women", icon: CloudLightning },
-  { id: "kids", label: "Kids", icon: BabyIcon },
-  { id: "accessories", label: "Accessories", icon: WatchIcon },
+  { id: "boys", label: "Boys", icon: ShirtIcon },
+  { id: "girls", label: "Girls", icon: CloudLightning },
+  // { id: "kids", label: "Kids", icon: BabyIcon },
+  // { id: "accessories", label: "Accessories", icon: WatchIcon },
   { id: "footwear", label: "Footwear", icon: UmbrellaIcon },
 ];
 
@@ -76,22 +76,22 @@ function ShoppingHome() {
     dispatch(fetchProductDetails(getCurrentProductId));
   }
 
-  function handleAddtoCart(getCurrentProductId) {
-    dispatch(
-      addToCart({
-        userId: user?.id,
-        productId: getCurrentProductId,
-        quantity: 1,
-      })
-    ).then((data) => {
-      if (data?.payload?.success) {
-        dispatch(fetchCartItems(user?.id));
-        toast({
-          title: "Product is added to cart",
-        });
-      }
-    });
-  }
+  // function handleAddtoCart(getCurrentProductId) {
+  //   dispatch(
+  //     addToCart({
+  //       userId: user?.id,
+  //       productId: getCurrentProductId,
+  //       quantity: 1,
+  //     })
+  //   ).then((data) => {
+  //     if (data?.payload?.success) {
+  //       dispatch(fetchCartItems(user?.id));
+  //       toast({
+  //         title: "Product is added to cart",
+  //       });
+  //     }
+  //   });
+  // }
 
   useEffect(() => {
     if (productDetails !== null) setOpenDetailsDialog(true);
@@ -122,15 +122,15 @@ function ShoppingHome() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="relative w-full p-2 h-64 md:h-[600px] overflow-hidden">
+      <div className="relative w-full h-[600px] overflow-hidden">
         {featureImageList && featureImageList.length > 0
           ? featureImageList.map((slide, index) => (
               <img
                 src={slide?.image}
                 key={index}
                 className={`${
-                  index === currentSlide ? "opacity-100 " : "opacity-0"
-                } absolute top-0 left-0 sm:w-96  md:w-full h-full object-cover transition-opacity duration-1000`}
+                  index === currentSlide ? "opacity-100" : "opacity-0"
+                } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
               />
             ))
           : null}
@@ -166,8 +166,8 @@ function ShoppingHome() {
           <h2 className="text-3xl font-bold text-center mb-8">
             Shop by category
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {categoriesWithIcon.map((categoryItem,i) => (
+          <div className="grid text-center mx-auto grid-cols-1 md:grid-cols-3 gap-4">
+            {categoriesWithIcon.map((categoryItem, i) => (
               <Card
                 key={i}
                 onClick={() =>
@@ -176,7 +176,7 @@ function ShoppingHome() {
                 className="cursor-pointer hover:shadow-lg transition-shadow"
               >
                 <CardContent className="flex flex-col items-center justify-center p-6">
-                  <categoryItem.icon className="w-12 h-12 mb-4 text-primary" />
+                  <categoryItem.icon className="md:w-12 md:h-12 w-5 h-5 mb-4 text-primary" />
                   <span className="font-bold">{categoryItem.label}</span>
                 </CardContent>
               </Card>
@@ -189,7 +189,7 @@ function ShoppingHome() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {brandsWithIcon.map((brandItem,i) => (
+            {brandsWithIcon.map((brandItem, i) => (
               <Card
                 key={i}
                 onClick={() => handleNavigateToListingPage(brandItem, "brand")}
@@ -212,12 +212,12 @@ function ShoppingHome() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {productList && productList.length > 0
-              ? productList.map((productItem,i) => (
-                <ShoppingProductTile
-                  key={i}
+              ? productList.map((productItem) => (
+                  <ShoppingProductTile
+                    key={productItem}
                     handleGetProductDetails={handleGetProductDetails}
                     product={productItem}
-                    handleAddtoCart={handleAddtoCart}
+                    //handleAddtoCart={handleAddtoCart}
                   />
                 ))
               : null}

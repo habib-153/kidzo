@@ -10,6 +10,15 @@ import shopOrderSlice from "./shop/order-slice";
 import shopSearchSlice from "./shop/search-slice";
 import shopReviewSlice from "./shop/review-slice";
 import commonFeatureSlice from "./common-slice";
+import storage from "redux-persist/lib/storage"
+import { FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE } from "redux-persist";
+
+const persistConfig = {
+  key: 'cart',
+  storage
+}
+
+const persistedReducer = persistReducer(persistConfig, shopCartSlice)
 
 const store = configureStore({
   reducer: {
@@ -19,7 +28,7 @@ const store = configureStore({
     adminOrder: adminOrderSlice,
 
     shopProducts: shopProductsSlice,
-    shopCart: shopCartSlice,
+    shopCart: persistedReducer,
     shopAddress: shopAddressSlice,
     shopOrder: shopOrderSlice,
     shopSearch: shopSearchSlice,
@@ -27,6 +36,13 @@ const store = configureStore({
 
     commonFeature: commonFeatureSlice,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [FLUSH, PAUSE, REGISTER, PERSIST, REHYDRATE, PURGE] 
+      }
+    }).concat(),
 });
 
 export default store;
+export const persistor = persistStore(store);

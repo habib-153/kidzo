@@ -8,13 +8,15 @@ const {
   deleteProduct,
 } = require("../../controllers/admin/products-controller");
 
-const { upload } = require("../../helpers/cloudinary");
+const {upload} = require('../../helpers/cloudinary')
+const { multerUpload } = require("../../helpers/multer.config");
+const { parseBody } = require("../../helpers/bodyparser");
 
 const router = express.Router();
 
 router.post("/upload-image", upload.single("my_file"), handleImageUpload);
-router.post("/add", addProduct);
-router.put("/edit/:id", editProduct);
+router.post("/add", multerUpload.fields([{name: 'Images'}]), parseBody, addProduct);
+router.put("/edit/:id", multerUpload.fields([{ name: 'Images' }]), parseBody, editProduct);
 router.delete("/delete/:id", deleteProduct);
 router.get("/get", fetchAllProducts);
 

@@ -1,4 +1,4 @@
-import { Search } from "lucide-react"
+//import { Search } from "lucide-react"
 
 export const registerFormControls = [
   {
@@ -60,10 +60,8 @@ export const addProductFormElements = [
     name: "category",
     componentType: "select",
     options: [
-      { id: "men", label: "Men" },
-      { id: "women", label: "Women" },
-      { id: "kids", label: "Kids" },
-      { id: "accessories", label: "Accessories" },
+      { id: "boys", label: "Boys" },
+      { id: "girls", label: "Girls" },
       { id: "footwear", label: "Footwear" },
     ],
   },
@@ -115,38 +113,20 @@ export const shoppingViewHeaderMenuItems = [
     path: "/shop/listing",
   },
   {
-    id: "men",
-    label: "Men",
+    id: "boys",
+    label: "Boys",
     path: "/shop/listing",
   },
   {
-    id: "women",
-    label: "Women",
+    id: "girls",
+    label: "Girls",
     path: "/shop/listing",
   },
-  {
-    id: "kids",
-    label: "Kids",
-    path: "/shop/listing",
-  },
-  {
-    id: "footwear",
-    label: "Footwear",
-    path: "/shop/listing",
-  },
-  {
-    id: "accessories",
-    label: "Accessories",
-    path: "/shop/listing",
-  },
- 
 ];
 
 export const categoryOptionsMap = {
-  men: "Men",
-  women: "Women",
-  kids: "Kids",
-  accessories: "Accessories",
+  boys: "Boys",
+  girls: "Girls",
   footwear: "Footwear",
 };
 
@@ -161,10 +141,8 @@ export const brandOptionsMap = {
 
 export const filterOptions = {
   category: [
-    { id: "men", label: "Men" },
-    { id: "women", label: "Women" },
-    { id: "kids", label: "Kids" },
-    { id: "accessories", label: "Accessories" },
+    { id: "boys", label: "Boys" },
+    { id: "girls", label: "Girls" },
     { id: "footwear", label: "Footwear" },
   ],
   brand: [

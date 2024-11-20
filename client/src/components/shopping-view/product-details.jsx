@@ -1,79 +1,101 @@
-import React, { useState, useEffect } from 'react';
-import { Avatar, AvatarFallback } from "../ui/avatar";
-import { Button, buttonVariants } from "../ui/button";
-import { Dialog, DialogContent } from "../ui/dialog";
-import { Separator } from "../ui/separator";
-import { Input } from "../ui/input";
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
-import { useToast } from "../ui/use-toast";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { StarIcon, Ruler, ShoppingBag, Heart } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useToast } from "@/components/ui/use-toast";
+import { addToCart } from "@/store/shop/cart-slice";
 import { setProductDetails } from "@/store/shop/products-slice";
-import { Label } from "../ui/label";
-import StarRatingComponent from "../common/star-rating";
 import { addReview, getReviews } from "@/store/shop/review-slice";
 
-function ProductDetailsDialog({ open, setOpen, productDetails }) {
+const sizeChartData = {
+  24: { chest: "36-38", waist: "28-30", hip: "38-40" },
+  30: { chest: "40-42", waist: "32-34", hip: "42-44" },
+};
+
+const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
+  const [selectedSize, setSelectedSize] = useState(null);
   const [reviewMsg, setReviewMsg] = useState("");
   const [rating, setRating] = useState(0);
-  const [selectedSize, setSelectedSize] = useState(Object.keys(productDetails?.price)[0]);
+  const [showSizeChart, setShowSizeChart] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(0);
+
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
   const { reviews } = useSelector((state) => state.shopReview);
-
   const { toast } = useToast();
 
-  function handleRatingChange(getRating) {
-    setRating(getRating);
-  }
-
-  function handleAddToCart() {
-    let getCartItems = cartItems.items || [];
-
-    if (getCartItems.length) {
-      const indexOfCurrentItem = getCartItems.findIndex(
-        (item) => item.productId === productDetails?._id
-      );
-      if (indexOfCurrentItem > -1) {
-        const getQuantity = getCartItems[indexOfCurrentItem].quantity;
-        if (getQuantity + 1 > productDetails?.inventory[0].quantity) {
-          toast({
-            title: `Only ${getQuantity} quantity can be added for this item`,
-            variant: "destructive",
-          });
-
-          return;
-        }
-      }
+  useEffect(() => {
+    if (productDetails?._id) {
+      dispatch(getReviews(productDetails._id));
+      setSelectedImage(0);
+      setQuantity(1);
     }
+  }, [productDetails, dispatch]);
+
+  const handleAddToCart = () => {
+    if (!selectedSize) {
+      toast({
+        title: "Please select a size",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const inventory = productDetails.inventory.find(
+      (item) => item.size === selectedSize
+    );
+    if (!inventory || !inventory.inStock) {
+      toast({
+        title: "Size not available",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (quantity > inventory.quantity) {
+      toast({
+        title: `Only ${inventory.quantity} items available`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     dispatch(
       addToCart({
-        userId: user?.id,
-        productId: productDetails?._id,
-        quantity: 1,
+        productId: productDetails._id,
+        quantity: quantity,
         size: selectedSize,
       })
-    ).then((data) => {
-      if (data?.payload?.success) {
-        dispatch(fetchCartItems(user?.id));
-        toast({
-          title: "Product is added to cart",
-        });
-      }
+    );
+    //dispatch(fetchCartItems());
+    toast({
+      title: "Added to cart successfully",
     });
-  }
+  };
 
-  function handleDialogClose() {
-    setOpen(false);
-    dispatch(setProductDetails());
-    setRating(0);
-    setReviewMsg("");
-  }
+  const handleAddReview = () => {
+    if (!rating || !reviewMsg.trim()) return;
 
-  function handleAddReview() {
     dispatch(
       addReview({
-        productId: productDetails?._id,
+        productId: productDetails._id,
         userId: user?.id,
         userName: user?.userName,
         reviewMessage: reviewMsg,
@@ -83,146 +105,337 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       if (data.payload.success) {
         setRating(0);
         setReviewMsg("");
-        dispatch(getReviews(productDetails?._id));
+        dispatch(getReviews(productDetails._id));
         toast({
-          title: "Review added successfully!",
+          title: "Review added successfully",
         });
       }
     });
-  }
+  };
 
-  useEffect(() => {
-    if (productDetails !== null) dispatch(getReviews(productDetails?._id));
-  }, [productDetails]);
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedSize(null);
+    setReviewMsg("");
+    setRating(0);
+    setShowSizeChart(false);
+    setQuantity(1);
+    dispatch(setProductDetails(null));
+  };
 
-  const averageReview =
-    reviews && reviews.length > 0
-      ? reviews.reduce((sum, reviewItem) => sum + reviewItem.reviewValue, 0) /
+  const averageRating = reviews?.length
+    ? (
+        reviews.reduce((sum, review) => sum + review.reviewValue, 0) /
         reviews.length
-      : 0;
+      ).toFixed(1)
+    : 0;
+
+  const inventory = selectedSize
+    ? productDetails.inventory.find((item) => item.size === selectedSize)
+    : null;
+  const maxQuantity = inventory ? inventory.quantity : 0;
 
   return (
-    <Dialog open={open} onOpenChange={handleDialogClose}>
-      <DialogContent className="grid grid-cols-2 gap-8 sm:p-12 max-w-[90vw] sm:max-w-[80vw] lg:max-w-[70vw]">
-        <div className="relative overflow-hidden rounded-lg">
-          <img
-            src={productDetails?.images[0]}
-            alt={productDetails?.name}
-            width={600}
-            height={600}
-            className="aspect-square w-full object-cover"
-          />
-        </div>
-        <div className="">
-          <div>
-            <h1 className="text-3xl font-extrabold">{productDetails?.name}</h1>
-            <p className="text-muted-foreground text-2xl mb-5 mt-4">
-              {productDetails?.description}
-            </p>
-          </div>
-          <div className="flex items-center justify-between">
-            <p
-              className={`text-3xl font-bold text-primary ${
-                productDetails?.sale_price[selectedSize] > 0 ? "line-through" : ""
-              }`}
-            >
-              ${productDetails?.price[selectedSize]}
-            </p>
-            {productDetails?.sale_price[selectedSize] > 0 ? (
-              <p className="text-2xl font-bold text-muted-foreground">
-                ${productDetails?.sale_price[selectedSize]}
-              </p>
-            ) : null}
-          </div>
-          <div className="flex items-center gap-2 mt-2">
-            <div className="flex items-center gap-0.5">
-              <StarRatingComponent rating={averageReview} />
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-[90vw] sm:max-w-[80vw] lg:max-w-[70vw] p-0">
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Image Gallery */}
+          <div className="relative group p-4">
+            <div className="aspect-square overflow-hidden rounded-lg mb-4">
+              <img
+                src={productDetails?.images[selectedImage]}
+                alt={productDetails?.name}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              />
             </div>
-            <span className="text-muted-foreground">
-              ({averageReview.toFixed(2)})
-            </span>
-          </div>
-          <div className="mt-5 mb-5 grid grid-cols-2 sm:flex sm:flex-row sm:items-center sm:space-x-4">
-            <div className="mb-4 sm:mb-0">
-              {Object.keys(productDetails?.price).map((size) => (
-                <Button
-                  key={size}
-                  variant={selectedSize === size ? "primary" : "outline"}
-                  onClick={() => setSelectedSize(size)}
-                  className={`mr-2 mb-2 ${buttonVariants({ variant: 'outline' })}`}
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {productDetails?.images.map((img, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImage(index)}
+                  className={`flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all ${
+                    selectedImage === index
+                      ? "border-rose-200"
+                      : "border-transparent hover:border-rose-100"
+                  }`}
                 >
-                  {size}
-                </Button>
+                  <img
+                    src={img}
+                    alt={`${productDetails?.name} ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
               ))}
             </div>
-            {productDetails?.inventory[0].quantity === 0 ? (
-              <Button className="w-full sm:w-auto opacity-60 cursor-not-allowed">
-                Out of Stock
-              </Button>
-            ) : (
+          </div>
+
+          {/* Product Info */}
+          <div className="p-8 max-h-[80vh] overflow-y-auto">
+            <div className="mb-8">
+              <div className="flex justify-between items-start mb-4">
+                <h1 className="text-3xl font-bold text-neutral-800">
+                  {productDetails?.name}
+                </h1>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-rose-300 hover:text-rose-400"
+                >
+                  <Heart className="w-6 h-6" />
+                </Button>
+              </div>
+              <p className="text-neutral-600 mb-4">
+                {productDetails?.description}
+              </p>
+
+              {/* Rating Summary */}
+              <div className="flex items-center gap-2 mb-6">
+                <div className="flex">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <StarIcon
+                      key={star}
+                      className={`w-4 h-4 ${
+                        star <= averageRating
+                          ? "text-yellow-400 fill-current"
+                          : "text-neutral-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-neutral-600">
+                  ({reviews?.length || 0} reviews)
+                </span>
+              </div>
+
+              {/* Price Display */}
+              <div className="flex items-baseline gap-3 mb-6">
+                {selectedSize &&
+                  productDetails?.sale_price?.[selectedSize] <
+                    productDetails?.price?.[selectedSize] && (
+                    <span className="text-2xl text-neutral-400 line-through">
+                      ${productDetails?.price?.[selectedSize]}
+                    </span>
+                  )}
+                <span className="text-3xl font-bold text-rose-300">
+                  $
+                  {selectedSize
+                    ? productDetails?.sale_price?.[selectedSize] ||
+                      productDetails?.price?.[selectedSize]
+                    : "Select size"}
+                </span>
+              </div>
+
+              {/* Size Selection */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-sm font-medium text-neutral-700">
+                    Select Size
+                  </Label>
+                  <Button
+                    variant="ghost"
+                    className="text-rose-300 hover:text-rose-400 flex items-center gap-1"
+                    onClick={() => setShowSizeChart(!showSizeChart)}
+                  >
+                    <Ruler className="w-4 h-4" />
+                    Size Guide
+                  </Button>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {Object.keys(productDetails?.price || {}).map((size) => {
+                    const inventory = productDetails.inventory.find(
+                      (item) => item.size === size
+                    );
+                    const isAvailable = inventory && inventory.inStock;
+
+                    return (
+                      <Button
+                        key={size}
+                        variant={selectedSize === size ? "default" : "outline"}
+                        className={`px-6 ${
+                          selectedSize === size
+                            ? "bg-rose-200 text-neutral-700 hover:bg-rose-300"
+                            : isAvailable
+                            ? "text-neutral-600 hover:text-neutral-700"
+                            : "text-neutral-400 cursor-not-allowed"
+                        }`}
+                        onClick={() => isAvailable && setSelectedSize(size)}
+                        disabled={!isAvailable}
+                      >
+                        {size}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Size Chart */}
+              {showSizeChart && (
+                <div className="mb-6 bg-neutral-50 rounded-lg p-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-neutral-700">Size</TableHead>
+                        <TableHead className="text-neutral-700">
+                          Chest (in)
+                        </TableHead>
+                        <TableHead className="text-neutral-700">
+                          Waist (in)
+                        </TableHead>
+                        <TableHead className="text-neutral-700">
+                          Hip (in)
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {Object.entries(sizeChartData).map(
+                        ([size, measurements]) => (
+                          <TableRow key={size}>
+                            <TableCell className="font-medium">
+                              {size}
+                            </TableCell>
+                            <TableCell>{measurements.chest}</TableCell>
+                            <TableCell>{measurements.waist}</TableCell>
+                            <TableCell>{measurements.hip}</TableCell>
+                          </TableRow>
+                        )
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+
+              {/* Quantity Selection */}
+              <div className="mb-6">
+                <Label className="text-sm font-medium text-neutral-700 mb-2 block">
+                  Quantity
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="text-neutral-600"
+                  >
+                    -
+                  </Button>
+                  <span className="w-12 text-center">{quantity}</span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() =>
+                      setQuantity(Math.min(quantity + 1, maxQuantity))
+                    }
+                    className="text-neutral-600"
+                    disabled={quantity >= maxQuantity}
+                  >
+                    +
+                  </Button>
+                </div>
+                {quantity >= maxQuantity && (
+                  <p className="text-sm text-red-500 mt-1">
+                    Maximum quantity reached
+                  </p>
+                )}
+              </div>
+
+              {/* Add to Cart Button */}
               <Button
-                className="w-full sm:w-auto"
+                className="w-full bg-rose-200 hover:bg-rose-300 text-neutral-700 mb-8"
                 onClick={handleAddToCart}
+                disabled={!selectedSize}
               >
+                <ShoppingBag className="w-4 h-4 mr-2" />
                 Add to Cart
               </Button>
-            )}
-          </div>
-          <Separator />
-          <div className="max-h-[300px] overflow-auto">
-            <h2 className="text-xl font-bold mb-4">Reviews</h2>
-            <div className="grid gap-6">
-              {reviews && reviews.length > 0 ? (
-                reviews.map((reviewItem) => (
-                  <div key={reviewItem._id} className="flex gap-4">
-                    <Avatar className="w-10 h-10 border">
-                      <AvatarFallback>
-                        {reviewItem?.userName[0].toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="grid gap-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold">{reviewItem?.userName}</h3>
+
+              <Separator className="mb-8" />
+
+              {/* Reviews Section */}
+              <div className="space-y-6">
+                <h2 className="text-xl font-bold text-neutral-800">
+                  Customer Reviews
+                </h2>
+
+                {/* Existing Reviews */}
+                <div className="space-y-4 mb-6">
+                  {reviews && reviews.length > 0 ? (
+                    reviews.map((review, index) => (
+                      <div key={index} className="bg-neutral-50 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <Avatar>
+                            <AvatarFallback className="bg-rose-100 text-neutral-700">
+                              {review.userName[0].toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-neutral-800">
+                                {review.userName}
+                              </span>
+                              <div className="flex">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <StarIcon
+                                    key={star}
+                                    className={`w-4 h-4 ${
+                                      star <= review.reviewValue
+                                        ? "text-yellow-400 fill-current"
+                                        : "text-neutral-300"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            <p className="text-neutral-600">
+                              {review.reviewMessage}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-0.5">
-                        <StarRatingComponent rating={reviewItem?.reviewValue} />
-                      </div>
-                      <p className="text-muted-foreground">
-                        {reviewItem.reviewMessage}
-                      </p>
+                    ))
+                  ) : (
+                    <p className="text-neutral-500 italic">No reviews yet</p>
+                  )}
+                </div>
+
+                {/* Review Form */}
+                {user && (
+                  <div className="bg-neutral-50 rounded-lg p-4 space-y-4">
+                    <Label className="text-neutral-700">Write a Review</Label>
+                    <div className="flex gap-1 mb-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <StarIcon
+                          key={star}
+                          className={`w-6 h-6 cursor-pointer ${
+                            star <= rating
+                              ? "text-yellow-400 fill-current"
+                              : "text-neutral-300 hover:text-yellow-200"
+                          }`}
+                          onClick={() => setRating(star)}
+                        />
+                      ))}
                     </div>
+                    <Input
+                      value={reviewMsg}
+                      onChange={(e) => setReviewMsg(e.target.value)}
+                      placeholder="Share your thoughts..."
+                      className="bg-white"
+                    />
+                    <Button
+                      onClick={handleAddReview}
+                      disabled={!rating || !reviewMsg.trim()}
+                      className="w-full bg-rose-200 hover:bg-rose-300 text-neutral-700"
+                    >
+                      Submit Review
+                    </Button>
                   </div>
-                ))
-              ) : (
-                <h1>No Reviews</h1>
-              )}
-            </div>
-            <div className="mt-10 flex-col flex gap-2">
-              <Label>Write a review</Label>
-              <div className="flex gap-1">
-                <StarRatingComponent
-                  rating={rating}
-                  handleRatingChange={handleRatingChange}
-                />
+                )}
               </div>
-              <Input
-                name="reviewMsg"
-                value={reviewMsg}
-                onChange={(event) => setReviewMsg(event.target.value)}
-                placeholder="Write a review..."
-              />
-              <Button
-                onClick={handleAddReview}
-                disabled={reviewMsg.trim() === ""}
-              >
-                Submit
-              </Button>
             </div>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
-}
+};
 
 export default ProductDetailsDialog;
