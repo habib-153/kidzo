@@ -145,7 +145,7 @@ function HeaderRightContent() {
           </DropdownMenuContent>
         </DropdownMenu>
       ) : (
-        <Button onClick={() => navigate("/login")} variant="outline">
+        <Button onClick={() => navigate("/auth/login")} variant="outline">
           Login
         </Button>
       )}
