@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { AlignJustify, LogOut } from "lucide-react";
 import { Button } from "../ui/button";
 import { useDispatch } from "react-redux";
