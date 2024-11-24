@@ -80,6 +80,7 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
     dispatch(
       addToCart({
         productId: productDetails._id,
+        product: productDetails,
         quantity: quantity,
         size: selectedSize,
       })
