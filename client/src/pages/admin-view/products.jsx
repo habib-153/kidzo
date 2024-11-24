@@ -1,8 +1,20 @@
+import { Fragment, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Trash2, PlusCircle } from "lucide-react";
+import axios from "axios"; // Ensure axios is imported
+import { createAsyncThunk } from "@reduxjs/toolkit"; // Import createAsyncThunk
+
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import AdminProductTile from "@/components/admin-view/product-tile";
-import CommonForm from "@/components/common/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -10,103 +22,171 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/use-toast";
-import { addProductFormElements } from "@/config";
-import {
-  addNewProduct,
-  deleteProduct,
-  editProduct,
-  fetchAllProducts,
-} from "@/store/admin/products-slice";
-import { Fragment, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { Trash2, PlusCircle } from "lucide-react";
+import { deleteProduct, fetchAllProducts } from "@/store/admin/products-slice";
 
-const initialSizeData = {
+// Redux Async Thunk for Adding Product
+export const addNewProduct = createAsyncThunk(
+  "/products/addnewproduct",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        brand: formData.brand || "",
+        images: formData.images || [],
+        inventory: formData.inventory,
+        price: formData.price,
+        sale_price: formData.sale_price,
+        tags: formData.tags || [],
+      };
+
+      const result = await axios.post(
+        "http://localhost:5000/api/admin/products/add",
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      return result.data;
+    } catch (error) {
+      console.error(
+        "Add Product Error:",
+        error.response?.data || error.message
+      );
+      return rejectWithValue(error.response?.data || "Failed to add product");
+    }
+  }
+);
+
+const CATEGORIES = ["Boys", "Girls", "Footwears", "Home & Kitchen"];
+
+const initialInventoryData = {
   size: "",
-  price: "",
-  salePrice: "",
-  totalStock: "",
+  quantity: "",
+  inStock: true,
 };
 
 const initialFormData = {
-  image: null,
-  title: "",
+  name: "",
   description: "",
   category: "",
   brand: "",
-  sizes: [],
-  averageReview: 0,
+  images: [],
+  inventory: [],
+  price: {},
+  sale_price: {},
+  tags: [],
 };
 
 function AdminProducts() {
   const [openCreateProductsDialog, setOpenCreateProductsDialog] =
     useState(false);
   const [formData, setFormData] = useState(initialFormData);
+  const [currentInventoryData, setCurrentInventoryData] =
+    useState(initialInventoryData);
   const [imageFile, setImageFile] = useState(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const [currentEditedId, setCurrentEditedId] = useState(null);
-  const [currentSizeData, setCurrentSizeData] = useState(initialSizeData);
+  const [currentPriceData, setCurrentPriceData] = useState({
+    size: "",
+    price: "",
+    salePrice: "",
+  });
+  const [tagInput, setTagInput] = useState("");
 
   const { productList } = useSelector((state) => state.adminProducts);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
-  // Add size handler
-  const handleAddSize = () => {
-    // Validate size data before adding
+  const handleAddTag = (e) => {
+    if (e.key === "Enter" && tagInput.trim()) {
+      setFormData((prev) => ({
+        ...prev,
+        tags: [...new Set([...prev.tags, tagInput.trim()])],
+      }));
+      setTagInput("");
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      tags: prev.tags.filter((tag) => tag !== tagToRemove),
+    }));
+  };
+
+  const handleAddInventory = () => {
     if (
-      currentSizeData.size &&
-      currentSizeData.price &&
-      currentSizeData.totalStock
+      currentInventoryData.size &&
+      currentInventoryData.quantity &&
+      currentPriceData.price
     ) {
       setFormData((prev) => ({
         ...prev,
-        sizes: [...(prev.sizes || []), { ...currentSizeData }],
+        inventory: [...(prev.inventory || []), { ...currentInventoryData }],
+        price: {
+          ...prev.price,
+          [currentPriceData.size]: Number(currentPriceData.price),
+        },
+        sale_price: {
+          ...prev.sale_price,
+          [currentPriceData.size]: Number(
+            currentPriceData.salePrice || currentPriceData.price
+          ),
+        },
       }));
-      // Reset current size data
-      setCurrentSizeData(initialSizeData);
+
+      setCurrentInventoryData(initialInventoryData);
+      setCurrentPriceData({ size: "", price: "", salePrice: "" });
     } else {
       toast({
         title: "Error",
-        description: "Please fill in all size details",
+        description: "Please fill in all inventory details",
         variant: "destructive",
       });
     }
   };
 
-  // Remove size handler
-  const handleRemoveSize = (indexToRemove) => {
-    setFormData((prev) => ({
-      ...prev,
-      sizes: prev.sizes.filter((_, index) => index !== indexToRemove),
-    }));
-  };
+  const handleRemoveInventory = (indexToRemove) => {
+    setFormData((prev) => {
+      const updatedInventory = prev.inventory.filter(
+        (_, index) => index !== indexToRemove
+      );
+      const updatedPrice = { ...prev.price };
+      const updatedSalePrice = { ...prev.sale_price };
 
-  // Handle brand input
-  const handleBrandChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      brand: e.target.value,
-    }));
+      const removedSize = prev.inventory[indexToRemove].size;
+      delete updatedPrice[removedSize];
+      delete updatedSalePrice[removedSize];
+
+      return {
+        ...prev,
+        inventory: updatedInventory,
+        price: updatedPrice,
+        sale_price: updatedSalePrice,
+      };
+    });
   };
 
   function onSubmit(event) {
     event.preventDefault();
 
-    // Validate form data
     const isValid =
-      formData.title &&
+      formData.name &&
       formData.description &&
       formData.category &&
-      formData.sizes.length > 0 &&
+      formData.inventory.length > 0 &&
       uploadedImageUrl;
 
     if (!isValid) {
       toast({
         title: "Validation Error",
-        description:
-          "Please fill in all required fields and add at least one size",
+        description: "Please fill in all required fields and add inventory",
         variant: "destructive",
       });
       return;
@@ -114,33 +194,37 @@ function AdminProducts() {
 
     const submitData = {
       ...formData,
-      image: uploadedImageUrl,
+      images: [uploadedImageUrl],
+      tags: formData.tags.length ? formData.tags : ["product"],
     };
 
-    currentEditedId !== null
+    currentEditedId
       ? dispatch(
-          addNewProduct({
-            id: currentEditedId,
-            formData: submitData,
-          })
+          addNewProduct({ id: currentEditedId, formData: submitData })
         ).then((data) => {
           if (data?.payload?.success) {
             dispatch(fetchAllProducts());
-            setFormData(initialFormData);
-            setOpenCreateProductsDialog(false);
-            setCurrentEditedId(null);
+            resetForm();
             toast({ title: "Product updated successfully" });
           }
         })
       : dispatch(addNewProduct(submitData)).then((data) => {
           if (data?.payload?.success) {
             dispatch(fetchAllProducts());
-            setOpenCreateProductsDialog(false);
-            setImageFile(null);
-            setFormData(initialFormData);
+            resetForm();
             toast({ title: "Product added successfully" });
           }
         });
+  }
+
+  function resetForm() {
+    setFormData(initialFormData);
+    setOpenCreateProductsDialog(false);
+    setCurrentEditedId(null);
+    setImageFile(null);
+    setUploadedImageUrl("");
+    setCurrentInventoryData(initialInventoryData);
+    setCurrentPriceData({ size: "", price: "", salePrice: "" });
   }
 
   function handleDelete(getCurrentProductId) {
@@ -167,7 +251,7 @@ function AdminProducts() {
         {productList && productList.length > 0
           ? productList.map((productItem) => (
               <AdminProductTile
-                key={productItem.id}
+                key={productItem._id}
                 setFormData={setFormData}
                 setOpenCreateProductsDialog={setOpenCreateProductsDialog}
                 setCurrentEditedId={setCurrentEditedId}
@@ -177,15 +261,7 @@ function AdminProducts() {
             ))
           : null}
       </div>
-      <Sheet
-        open={openCreateProductsDialog}
-        onOpenChange={() => {
-          setOpenCreateProductsDialog(false);
-          setCurrentEditedId(null);
-          setFormData(initialFormData);
-          setCurrentSizeData(initialSizeData);
-        }}
-      >
+      <Sheet open={openCreateProductsDialog} onOpenChange={resetForm}>
         <SheetContent side="right" className="overflow-auto">
           <SheetHeader>
             <SheetTitle>
@@ -202,88 +278,115 @@ function AdminProducts() {
             isEditMode={currentEditedId !== null}
           />
           <div className="py-6 space-y-4">
-            {/* Existing form elements */}
-            <CommonForm
-              formData={formData}
-              setFormData={setFormData}
-              formControls={addProductFormElements.filter(
-                (control) =>
-                  control.name !== "brand" &&
-                  control.name !== "price" &&
-                  control.name !== "salePrice" &&
-                  control.name !== "totalStock"
-              )}
-            />
-
-            {/* Brand Input */}
             <div className="grid grid-cols-2 gap-4">
               <Input
-                placeholder="Brand (Optional)"
-                value={formData.brand}
-                onChange={handleBrandChange}
+                placeholder="Product Name"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                }
+                required
               />
+              <Select
+                value={formData.category}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, category: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Size and Price Management */}
-            <div className="border p-4 rounded-md">
-              <h3 className="text-lg font-semibold mb-4">Product Sizes</h3>
+            <Input
+              placeholder="Description"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
+              className="w-full"
+              required
+            />
 
-              {/* Size Input Fields */}
+            <Input
+              placeholder="Brand (Optional)"
+              value={formData.brand}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, brand: e.target.value }))
+              }
+            />
+
+            <div className="border p-4 rounded-md">
+              <h3 className="text-lg font-semibold mb-4">Product Inventory</h3>
+
               <div className="grid grid-cols-3 gap-2 mb-4">
                 <Input
                   placeholder="Size"
-                  value={currentSizeData.size}
+                  value={currentInventoryData.size}
                   onChange={(e) =>
-                    setCurrentSizeData((prev) => ({
+                    setCurrentInventoryData((prev) => ({
                       ...prev,
                       size: e.target.value,
                     }))
                   }
                 />
                 <Input
-                  placeholder="Price"
+                  placeholder="Quantity"
                   type="number"
-                  value={currentSizeData.price}
+                  value={currentInventoryData.quantity}
                   onChange={(e) =>
-                    setCurrentSizeData((prev) => ({
+                    setCurrentInventoryData((prev) => ({
                       ...prev,
-                      price: e.target.value,
+                      quantity: e.target.value,
+                      inStock: Number(e.target.value) > 0,
                     }))
                   }
                 />
                 <Input
-                  placeholder="Stock"
+                  placeholder="Price"
                   type="number"
-                  value={currentSizeData.totalStock}
+                  value={currentPriceData.price}
                   onChange={(e) =>
-                    setCurrentSizeData((prev) => ({
+                    setCurrentPriceData((prev) => ({
                       ...prev,
-                      totalStock: e.target.value,
+                      size: currentInventoryData.size,
+                      price: e.target.value,
                     }))
                   }
                 />
                 <Button
                   variant="outline"
                   className="col-span-3 mt-2"
-                  onClick={handleAddSize}
+                  onClick={handleAddInventory}
                 >
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add Size
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Inventory
                 </Button>
               </div>
 
-              {/* Added Sizes List */}
-              {formData?.sizes.map((size, index) => (
+              {formData?.inventory.map((inv, index) => (
                 <div
                   key={index}
                   className="flex items-center justify-between border p-2 rounded mb-2"
                 >
                   <div>
-                    {size.size} - ${size.price} (Stock: {size.totalStock})
+                    Size: {inv.size} - Qty: {inv.quantity} - Price: $
+                    {formData.price[inv.size]}
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleRemoveSize(index)}
+                    onClick={() => handleRemoveInventory(index)}
                   >
                     <Trash2 className="h-4 w-4 text-red-500" />
                   </Button>
@@ -291,10 +394,44 @@ function AdminProducts() {
               ))}
             </div>
 
-            {/* Submit Button */}
+            <div className="border p-4 rounded-md">
+              <h3 className="text-lg font-semibold mb-4">Product Tags</h3>
+              <Input
+                placeholder="Add tags (press Enter to add)"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleAddTag}
+              />
+              <div className="flex flex-wrap gap-2 mt-2">
+                {formData.tags.map((tag) => (
+                  <div
+                    key={tag}
+                    className="bg-gray-200 px-2 py-1 rounded-full flex items-center"
+                  >
+                    {tag}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="ml-1 h-4 w-4 p-0"
+                    >
+                      <Trash2 className="h-3 w-3 text-red-500" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <Button
               onClick={onSubmit}
-              disabled={formData.sizes.length === 0 || !uploadedImageUrl}
+              disabled={
+                !formData.name ||
+                !formData.description ||
+                !formData.category ||
+                formData.inventory.length === 0 ||
+                !uploadedImageUrl
+              }
+              className="w-full"
             >
               {currentEditedId !== null ? "Update Product" : "Add Product"}
             </Button>
