@@ -1,34 +1,30 @@
 const mongoose = require("mongoose");
 
 const OrderSchema = new mongoose.Schema({
-  userId: String,
-  cartId: String,
+  userId: { type: String, default: null },
   cartItems: [
     {
       productId: String,
       title: String,
       image: String,
-      price: String,
+      price: Number,
       quantity: Number,
       size: String,
     },
   ],
   addressInfo: {
-    addressId: String,
     address: String,
     city: String,
     pincode: String,
     phone: String,
     notes: String,
   },
-  orderStatus: String,
-  paymentMethod: String,
-  paymentStatus: String,
+  orderStatus: { type: String, default: "pending" },
+  paymentMethod: { type: String, default: "cash on delivery" },
+  paymentStatus: { type: String, default: "pending" },
   totalAmount: Number,
-  orderDate: Date,
-  orderUpdateDate: Date,
-  paymentId: String,
-  payerId: String,
+  orderDate: { type: Date, default: Date.now },
+  orderUpdateDate: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model("Order", OrderSchema);
