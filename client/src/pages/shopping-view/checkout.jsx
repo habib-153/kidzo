@@ -64,7 +64,7 @@ function ShoppingCheckout() {
       cartItems: cartItems.map((singleCartItem) => ({
         productId: singleCartItem?.productId,
         title: singleCartItem?.product?.name,
-        image: singleCartItem?.product?.image[0],
+        image: singleCartItem?.product?.images[0],
         price:
           singleCartItem?.salePrice > 0
             ? singleCartItem?.product?.sale_price?.[singleCartItem.size]

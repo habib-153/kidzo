@@ -27,6 +27,33 @@ export const fetchAllFilteredProducts = createAsyncThunk(
   }
 );
 
+export const manageProduct = createAsyncThunk(
+  "/products/manageProduct",
+  async ({ id, formData }, { rejectWithValue }) => {
+    try {
+      const url = id 
+        ? `http://localhost:5000/api/admin/products/edit/${id}`
+        : "http://localhost:5000/api/admin/products/add";
+      
+      const method = id ? "put" : "post";
+
+      const result = await axios[method](url, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      return result.data;
+    } catch (error) {
+      console.error(
+        "Product Management Error:",
+        error.response?.data || error.message
+      );
+      return rejectWithValue(error.response?.data || "Failed to manage product");
+    }
+  }
+);
+
 export const fetchProductDetails = createAsyncThunk(
   "/products/fetchProductDetails",
   async (id) => {

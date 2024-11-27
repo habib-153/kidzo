@@ -79,6 +79,8 @@ function ProductImageUpload({
         <Input
           id="image-upload"
           type="file"
+          multiple
+    accept="image/*"
           className="hidden"
           ref={inputRef}
           onChange={handleImageFileChange}
