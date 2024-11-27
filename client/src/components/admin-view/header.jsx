@@ -8,6 +8,7 @@ function AdminHeader({ setOpen }) {
   const dispatch = useDispatch();
 
   function handleLogout() {
+    console.log("Logging out");
     dispatch(logoutUser());
   }
 

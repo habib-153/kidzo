@@ -44,13 +44,13 @@ function AdminOrderDetailsView({ orderDetails }) {
   }
 
   return (
-    <DialogContent className="max-w-[90vw] sm:max-w-[80vw] lg:max-w-[70vw] p-0">
+    <DialogContent className="max-w-[90vw] sm:max-w-[80vw] lg:max-w-[70vw] max-h-[90vh] overflow-y-auto p-0">
       <div className="text-center mt-3">
         <DialogTitle>Order Details</DialogTitle>
       <DialogDescription>Details of the selected order</DialogDescription>
       </div>
       
-      <div className="grid md:grid-cols-2 gap-8 p-8">
+      <div className="grid md:grid-cols-2 gap-8 p-8 max-h-[70vh]">
         {/* Order Info */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">

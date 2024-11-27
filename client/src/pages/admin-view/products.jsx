@@ -1,10 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Trash2, PlusCircle } from "lucide-react";
-import axios from "axios"; // Ensure axios is imported
-import { createAsyncThunk } from "@reduxjs/toolkit"; // Import createAsyncThunk
-
-import ProductImageUpload from "@/components/admin-view/image-upload";
 import AdminProductTile from "@/components/admin-view/product-tile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,44 +19,8 @@ import {
 } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/use-toast";
 import { deleteProduct, fetchAllProducts } from "@/store/admin/products-slice";
-
-// Redux Async Thunk for Adding Product
-export const addNewProduct = createAsyncThunk(
-  "/products/addnewproduct",
-  async (formData, { rejectWithValue }) => {
-    try {
-      const payload = {
-        name: formData.name,
-        description: formData.description,
-        category: formData.category,
-        brand: formData.brand || "",
-        images: formData.images || [],
-        inventory: formData.inventory,
-        price: formData.price,
-        sale_price: formData.sale_price,
-        tags: formData.tags || [],
-      };
-
-      const result = await axios.post(
-        "http://localhost:5000/api/admin/products/add",
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      return result.data;
-    } catch (error) {
-      console.error(
-        "Add Product Error:",
-        error.response?.data || error.message
-      );
-      return rejectWithValue(error.response?.data || "Failed to add product");
-    }
-  }
-);
+import ProductImageUpload from "@/components/admin-view/ProductImage";
+import { manageProduct } from "@/store/shop/products-slice";
 
 const CATEGORIES = ["Boys", "Girls", "Footwears", "Home & Kitchen"];
 
@@ -88,9 +48,7 @@ function AdminProducts() {
   const [formData, setFormData] = useState(initialFormData);
   const [currentInventoryData, setCurrentInventoryData] =
     useState(initialInventoryData);
-  const [imageFile, setImageFile] = useState(null);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
-  const [imageLoadingState, setImageLoadingState] = useState(false);
+  const [imageFiles, setImageFiles] = useState([]);
   const [currentEditedId, setCurrentEditedId] = useState(null);
   const [currentPriceData, setCurrentPriceData] = useState({
     size: "",
@@ -180,8 +138,9 @@ function AdminProducts() {
       formData.name &&
       formData.description &&
       formData.category &&
-      formData.inventory.length > 0 &&
-      uploadedImageUrl;
+      formData.inventory.length > 0;
+    // &&
+    // imageFiles.length > 0;
 
     if (!isValid) {
       toast({
@@ -192,37 +151,47 @@ function AdminProducts() {
       return;
     }
 
-    const submitData = {
-      ...formData,
-      images: [uploadedImageUrl],
+    const submitFormData = new FormData();
+    const productData = {
+      name: formData.name,
+      description: formData.description,
+      category: formData.category,
+      brand: formData.brand || "",
+      inventory: formData.inventory,
+      price: formData.price,
+      sale_price: formData.sale_price,
       tags: formData.tags.length ? formData.tags : ["product"],
+      images: formData.images,
     };
 
-    currentEditedId
-      ? dispatch(
-          addNewProduct({ id: currentEditedId, formData: submitData })
-        ).then((data) => {
-          if (data?.payload?.success) {
-            dispatch(fetchAllProducts());
-            resetForm();
-            toast({ title: "Product updated successfully" });
-          }
-        })
-      : dispatch(addNewProduct(submitData)).then((data) => {
-          if (data?.payload?.success) {
-            dispatch(fetchAllProducts());
-            resetForm();
-            toast({ title: "Product added successfully" });
-          }
+    submitFormData.append("data", JSON.stringify(productData));
+    imageFiles.forEach((file) => {
+      submitFormData.append("Images", file);
+    });
+
+    dispatch(
+      manageProduct({
+        id: currentEditedId,
+        formData: submitFormData,
+      })
+    ).then((data) => {
+      if (data?.payload?.success) {
+        dispatch(fetchAllProducts());
+        resetForm();
+        toast({
+          title: `Product ${
+            currentEditedId ? "updated" : "added"
+          } successfully`,
         });
+      }
+    });
   }
 
   function resetForm() {
     setFormData(initialFormData);
     setOpenCreateProductsDialog(false);
     setCurrentEditedId(null);
-    setImageFile(null);
-    setUploadedImageUrl("");
+    setImageFiles(null);
     setCurrentInventoryData(initialInventoryData);
     setCurrentPriceData({ size: "", price: "", salePrice: "" });
   }
@@ -247,7 +216,7 @@ function AdminProducts() {
           Add New Product
         </Button>
       </div>
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {productList && productList.length > 0
           ? productList.map((productItem) => (
               <AdminProductTile
@@ -257,6 +226,7 @@ function AdminProducts() {
                 setCurrentEditedId={setCurrentEditedId}
                 product={productItem}
                 handleDelete={handleDelete}
+                setImageFiles={setImageFiles}
               />
             ))
           : null}
@@ -269,13 +239,11 @@ function AdminProducts() {
             </SheetTitle>
           </SheetHeader>
           <ProductImageUpload
-            imageFile={imageFile}
-            setImageFile={setImageFile}
-            uploadedImageUrl={uploadedImageUrl}
-            setUploadedImageUrl={setUploadedImageUrl}
-            setImageLoadingState={setImageLoadingState}
-            imageLoadingState={imageLoadingState}
+            imageFiles={imageFiles}
+            setImageFiles={setImageFiles}
             isEditMode={currentEditedId !== null}
+            initialImages={currentEditedId ? formData.images : []}
+            setFormData={setFormData}
           />
           <div className="py-6 space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -327,10 +295,10 @@ function AdminProducts() {
               }
             />
 
-            <div className="border p-4 rounded-md">
+            <div className="border p-2 rounded-md">
               <h3 className="text-lg font-semibold mb-4">Product Inventory</h3>
 
-              <div className="grid grid-cols-3 gap-2 mb-4">
+              <div className="grid grid-cols-4 gap-1 mb-4">
                 <Input
                   placeholder="Size"
                   value={currentInventoryData.size}
@@ -365,9 +333,21 @@ function AdminProducts() {
                     }))
                   }
                 />
+                <Input
+                  placeholder="Sale Price"
+                  type="number"
+                  value={currentPriceData.salePrice}
+                  onChange={(e) =>
+                    setCurrentPriceData((prev) => ({
+                      ...prev,
+                      size: currentInventoryData.size,
+                      salePrice: e.target.value || prev.price, // Default to regular price if empty
+                    }))
+                  }
+                />
                 <Button
                   variant="outline"
-                  className="col-span-3 mt-2"
+                  className="col-span-4 mt-2"
                   onClick={handleAddInventory}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" /> Add Inventory
@@ -380,8 +360,11 @@ function AdminProducts() {
                   className="flex items-center justify-between border p-2 rounded mb-2"
                 >
                   <div>
-                    Size: {inv.size} - Qty: {inv.quantity} - Price: $
+                    Size: {inv.size} - Qty: {inv.quantity} - Price: ৳
                     {formData.price[inv.size]}
+                    {formData.sale_price[inv.size] !==
+                      formData.price[inv.size] &&
+                      ` - Sale: ৳${formData.sale_price[inv.size]}`}
                   </div>
                   <Button
                     variant="ghost"
@@ -429,7 +412,7 @@ function AdminProducts() {
                 !formData.description ||
                 !formData.category ||
                 formData.inventory.length === 0 ||
-                !uploadedImageUrl
+                !imageFiles // Change from !uploadedImageUrl to !imageFile
               }
               className="w-full"
             >
