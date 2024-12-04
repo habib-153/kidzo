@@ -47,9 +47,9 @@ function AdminOrderDetailsView({ orderDetails }) {
     <DialogContent className="max-w-[90vw] sm:max-w-[80vw] lg:max-w-[70vw] max-h-[90vh] overflow-y-auto p-0">
       <div className="text-center mt-3">
         <DialogTitle>Order Details</DialogTitle>
-      <DialogDescription>Details of the selected order</DialogDescription>
+        <DialogDescription>Details of the selected order</DialogDescription>
       </div>
-      
+
       <div className="grid md:grid-cols-2 gap-8 p-8 max-h-[70vh]">
         {/* Order Info */}
         <div className="space-y-4">
@@ -59,7 +59,9 @@ function AdminOrderDetailsView({ orderDetails }) {
           </div>
           <div className="flex items-center justify-between">
             <p className="font-medium">Order Date</p>
-            <Label>{new Date(orderDetails?.orderDate).toLocaleDateString()}</Label>
+            <Label>
+              {new Date(orderDetails?.orderDate).toLocaleDateString()}
+            </Label>
           </div>
           <div className="flex items-center justify-between">
             <p className="font-medium">Order Status</p>
@@ -87,7 +89,7 @@ function AdminOrderDetailsView({ orderDetails }) {
           </div>
           <div className="flex items-center justify-between">
             <p className="font-medium">Total Amount</p>
-            <Label>${orderDetails?.totalAmount.toFixed(2)}</Label>
+            <Label>৳{orderDetails?.totalAmount.toFixed(2)}</Label>
           </div>
         </div>
 
@@ -97,7 +99,7 @@ function AdminOrderDetailsView({ orderDetails }) {
           <div className="grid gap-0.5 text-muted-foreground">
             <span>{orderDetails?.addressInfo?.address}</span>
             <span>{orderDetails?.addressInfo?.city}</span>
-            <span>{orderDetails?.addressInfo?.pincode}</span>
+            <span>{orderDetails?.addressInfo?.Name}</span>
             <span>{orderDetails?.addressInfo?.phone}</span>
             <span>{orderDetails?.addressInfo?.notes}</span>
           </div>
@@ -111,16 +113,29 @@ function AdminOrderDetailsView({ orderDetails }) {
         <div className="font-medium">Order Items</div>
         <ul className="grid gap-3">
           {orderDetails?.cartItems?.map((item) => (
-            <li key={item.productId + item.size} className="flex items-center justify-between">
+            <li
+              key={item.productId + item.size}
+              className="flex items-center justify-between"
+            >
               <div className="flex items-center gap-4">
-                <img src={item.image} alt={item.title} className="w-16 h-16 object-cover rounded" />
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-16 h-16 object-cover rounded"
+                />
                 <div>
                   <h3 className="font-bold">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">Size: {item.size}</p>
-                  <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Size: {item.size}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Quantity: {item.quantity}
+                  </p>
                 </div>
               </div>
-              <p className="font-bold">${(item.price * item.quantity).toFixed(2)}</p>
+              <p className="font-bold">
+                ৳{(item.price * item.quantity).toFixed(2)}
+              </p>
             </li>
           ))}
         </ul>

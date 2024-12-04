@@ -26,16 +26,21 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
         <SheetTitle>Your Cart</SheetTitle>
       </SheetHeader>
       <div className="mt-8 space-y-4">
-        {cartItems && cartItems.length > 0
-          ? cartItems.map((item) => (
-              <UserCartItemsContent key={item.productId + item.size} cartItem={item} />
-            ))
-          : <p>Your cart is empty</p>}
+        {cartItems && cartItems.length > 0 ? (
+          cartItems.map((item) => (
+            <UserCartItemsContent
+              key={item.productId + item.size}
+              cartItem={item}
+            />
+          ))
+        ) : (
+          <p>Your cart is empty</p>
+        )}
       </div>
       <div className="mt-8 space-y-4">
         <div className="flex justify-between">
           <span className="font-bold">Total</span>
-          <span className="font-bold">${totalCartAmount.toFixed(2)}</span>
+          <span className="font-bold">৳{totalCartAmount.toFixed(2)}</span>
         </div>
       </div>
       <Button

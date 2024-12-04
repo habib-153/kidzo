@@ -95,7 +95,9 @@ function ShoppingCheckout() {
     });
   }
 
-  const isAddressValid = currentSelectedAddress && Object.values(currentSelectedAddress).every(value => value.trim() !== "");
+  const isAddressValid =
+    currentSelectedAddress &&
+    Object.values(currentSelectedAddress).every((value) => value.trim() !== "");
 
   return (
     <div className="flex flex-col">
@@ -108,22 +110,28 @@ function ShoppingCheckout() {
           setCurrentSelectedAddress={setCurrentSelectedAddress}
         />
         <div className="flex flex-col gap-4">
-          {cartItems && cartItems.length > 0
-            ? cartItems.map((item) => (
-                <UserCartItemsContent
-                  key={item.productId + item.size}
-                  cartItem={item}
-                />
-              ))
-            : <p>Your cart is empty</p>}
+          {cartItems && cartItems.length > 0 ? (
+            cartItems.map((item) => (
+              <UserCartItemsContent
+                key={item.productId + item.size}
+                cartItem={item}
+              />
+            ))
+          ) : (
+            <p>Your cart is empty</p>
+          )}
           <div className="mt-8 space-y-4">
             <div className="flex justify-between">
               <span className="font-bold">Total</span>
-              <span className="font-bold">${totalCartAmount}</span>
+              <span className="font-bold">৳{totalCartAmount}</span>
             </div>
           </div>
           <div className="mt-4 w-full">
-            <Button onClick={handleInitiateOrder} disabled={!isAddressValid} className="w-full">
+            <Button
+              onClick={handleInitiateOrder}
+              disabled={!isAddressValid}
+              className="w-full"
+            >
               Place Order
             </Button>
           </div>

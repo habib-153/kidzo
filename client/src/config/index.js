@@ -178,11 +178,11 @@ export const addressFormControls = [
     placeholder: "Enter your city",
   },
   {
-    label: "Pincode",
-    name: "pincode",
+    label: "Name",
+    name: "Name",
     componentType: "input",
     type: "text",
-    placeholder: "Enter your pincode",
+    placeholder: "Enter your Name",
   },
   {
     label: "Phone",

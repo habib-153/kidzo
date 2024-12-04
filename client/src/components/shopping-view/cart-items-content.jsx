@@ -54,7 +54,7 @@ function UserCartItemsContent({ cartItem }) {
   return (
     <div className="flex items-center space-x-4">
       <img
-        src={cartItem.product.images[0]}
+        src={cartItem?.product.images[0]}
         alt={cartItem.product.name}
         className="w-20 h-20 rounded object-cover"
       />
@@ -85,7 +85,7 @@ function UserCartItemsContent({ cartItem }) {
       </div>
       <div className="flex flex-col items-end">
         <p className="font-semibold">
-          $
+          ৳
           {(
             (cartItem.product.sale_price?.[cartItem.size] > 0
               ? cartItem.product.sale_price[cartItem.size]
