@@ -1,7 +1,4 @@
 import { Button } from "@/components/ui/button";
-// import bannerOne from "../../assets/banner-1.webp";
-// import bannerTwo from "../../assets/banner-2.webp";
-// import bannerThree from "../../assets/banner-3.webp";
 import {
   Airplay,
   // BabyIcon,
@@ -15,7 +12,6 @@ import {
   ShoppingBasket,
   UmbrellaIcon,
   WashingMachine,
-  // WatchIcon,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -26,16 +22,13 @@ import {
 } from "@/store/shop/products-slice";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { useNavigate } from "react-router-dom";
-import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
-import { useToast } from "@/components/ui/use-toast";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { getFeatureImages } from "@/store/common-slice";
+import Footer from "@/components/shopping-view/footer";
 
 const categoriesWithIcon = [
   { id: "boys", label: "Boys", icon: ShirtIcon },
   { id: "girls", label: "Girls", icon: CloudLightning },
-  // { id: "kids", label: "Kids", icon: BabyIcon },
-  // { id: "accessories", label: "Accessories", icon: WatchIcon },
   { id: "footwear", label: "Footwear", icon: UmbrellaIcon },
 ];
 
@@ -56,11 +49,8 @@ function ShoppingHome() {
 
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
-  const { user } = useSelector((state) => state.auth);
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   function handleNavigateToListingPage(getCurrentItem, section) {
     sessionStorage.removeItem("filters");
@@ -75,23 +65,6 @@ function ShoppingHome() {
   function handleGetProductDetails(getCurrentProductId) {
     dispatch(fetchProductDetails(getCurrentProductId));
   }
-
-  // function handleAddtoCart(getCurrentProductId) {
-  //   dispatch(
-  //     addToCart({
-  //       userId: user?.id,
-  //       productId: getCurrentProductId,
-  //       quantity: 1,
-  //     })
-  //   ).then((data) => {
-  //     if (data?.payload?.success) {
-  //       dispatch(fetchCartItems(user?.id));
-  //       toast({
-  //         title: "Product is added to cart",
-  //       });
-  //     }
-  //   });
-  // }
 
   useEffect(() => {
     if (productDetails !== null) setOpenDetailsDialog(true);
@@ -113,8 +86,6 @@ function ShoppingHome() {
       })
     );
   }, [dispatch]);
-
-  console.log(productList, "productList");
 
   useEffect(() => {
     dispatch(getFeatureImages());
@@ -212,9 +183,9 @@ function ShoppingHome() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {productList && productList.length > 0
-              ? productList.map((productItem) => (
+              ? productList.map((productItem, idx) => (
                   <ShoppingProductTile
-                    key={productItem}
+                    key={idx}
                     handleGetProductDetails={handleGetProductDetails}
                     product={productItem}
                     //handleAddtoCart={handleAddtoCart}
@@ -229,6 +200,7 @@ function ShoppingHome() {
         setOpen={setOpenDetailsDialog}
         productDetails={productDetails}
       />
+      <Footer />
     </div>
   );
 }

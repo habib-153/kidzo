@@ -1,18 +1,11 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useDispatch, useSelector } from "react-redux";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
-import { brandOptionsMap, categoryOptionsMap } from "@/config";
 
 const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
-  const dispatch = useDispatch();
-  const { cartItems } = useSelector((state) => state.shopCart);
-  const { toast } = useToast();
-  console.log(cartItems);
-  const basePrice = Object.entries(product?.price || {});
+  // const { cartItems } = useSelector((state) => state.shopCart);
+  //console.log(cartItems);
   const salePrice = Object.entries(product?.sale_price || {});
   const hasDiscount = salePrice.some(
     ([size, price]) => price < (product?.price[size] || 0)
