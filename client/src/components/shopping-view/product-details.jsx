@@ -214,11 +214,11 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
                   productDetails?.sale_price?.[selectedSize] <
                     productDetails?.price?.[selectedSize] && (
                     <span className="text-2xl text-neutral-400 line-through">
-                      ${productDetails?.sale_price?.[selectedSize]}
+                      ৳{productDetails?.sale_price?.[selectedSize]}
                     </span>
                   )}
                 <span className="text-3xl font-bold text-rose-300">
-                  Price: ৳
+                  ৳
                   {selectedSize
                     ? productDetails?.sale_price?.[selectedSize] ||
                       productDetails?.price?.[selectedSize]
@@ -332,7 +332,7 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
                     +
                   </Button>
                 </div>
-                {quantity >= maxQuantity && (
+                {selectedSize && quantity >= maxQuantity && (
                   <p className="text-sm text-red-500 mt-1">
                     Maximum quantity reached
                   </p>

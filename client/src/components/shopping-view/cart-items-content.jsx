@@ -22,7 +22,7 @@ function UserCartItemsContent({ cartItem }) {
       });
       return;
     }
-
+    console.log(`cartItem ${cartItem}`);
     dispatch(
       updateCartQuantity({
         productId: getCartItem.productId,
@@ -54,12 +54,12 @@ function UserCartItemsContent({ cartItem }) {
   return (
     <div className="flex items-center space-x-4">
       <img
-        src={cartItem?.product.images[0]}
-        alt={cartItem.product.name}
+        src={cartItem?.product?.images[0]}
+        alt={cartItem?.product.name}
         className="w-20 h-20 rounded object-cover"
       />
       <div className="flex-1">
-        <h3 className="font-extrabold">{cartItem.product.name}</h3>
+        <h3 className="font-extrabold">{cartItem?.product.name}</h3>
         <div className="flex items-center gap-2 mt-1">
           <Button
             variant="outline"
