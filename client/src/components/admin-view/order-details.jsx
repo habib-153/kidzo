@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+/* eslint-disable react/prop-types */
 import { useState } from "react";
 import CommonForm from "../common/form";
 import { DialogContent, DialogDescription, DialogTitle } from "../ui/dialog";
@@ -79,17 +80,22 @@ function AdminOrderDetailsView({ orderDetails }) {
               </Badge>
             </Label>
           </div>
-          <div className="flex items-center justify-between">
-            <p className="font-medium">Payment Method</p>
-            <Label>{orderDetails?.paymentMethod}</Label>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="font-medium">Payment Status</p>
-            <Label>{orderDetails?.paymentStatus}</Label>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="font-medium">Total Amount</p>
-            <Label>৳{orderDetails?.totalAmount.toFixed(2)}</Label>
+        </div>
+        <Separator />
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <div className="font-medium">Order Details</div>
+            <ul className="grid gap-3">
+              {orderDetails?.cartItems && orderDetails?.cartItems.length > 0
+                ? orderDetails?.cartItems.map((item, i) => (
+                    <li key={i} className="flex items-center justify-between">
+                      <span>Title: {item.title}</span>
+                      <span>Quantity: {item.quantity}</span>
+                      <span>Price: ${item.price}</span>
+                    </li>
+                  ))
+                : null}
+            </ul>
           </div>
         </div>
 

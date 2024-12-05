@@ -4,6 +4,7 @@ import { Trash2, PlusCircle } from "lucide-react";
 import AdminProductTile from "@/components/admin-view/product-tile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+<<<<<<< HEAD
 import {
   Select,
   SelectContent,
@@ -11,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+=======
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
 import {
   Sheet,
   SheetContent,
@@ -18,6 +21,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/use-toast";
+<<<<<<< HEAD
 import { deleteProduct, fetchAllProducts } from "@/store/admin/products-slice";
 import ProductImageUpload from "@/components/admin-view/ProductImage";
 import { manageProduct } from "@/store/shop/products-slice";
@@ -28,6 +32,24 @@ const initialInventoryData = {
   size: "",
   quantity: "",
   inStock: true,
+=======
+import { addProductFormElements } from "@/config";
+import {
+  addNewProduct,
+  deleteProduct,
+  editProduct,
+  fetchAllProducts,
+} from "@/store/admin/products-slice";
+import { Fragment, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Trash2, PlusCircle } from "lucide-react";
+
+const initialSizeData = {
+  size: "",
+  price: "",
+  salePrice: "",
+  totalStock: "",
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
 };
 
 const initialFormData = {
@@ -35,11 +57,16 @@ const initialFormData = {
   description: "",
   category: "",
   brand: "",
+<<<<<<< HEAD
   images: [],
   inventory: [],
   price: {},
   sale_price: {},
   tags: [],
+=======
+  sizes: [],
+  averageReview: 0,
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
 };
 
 function AdminProducts() {
@@ -50,17 +77,22 @@ function AdminProducts() {
     useState(initialInventoryData);
   const [imageFiles, setImageFiles] = useState([]);
   const [currentEditedId, setCurrentEditedId] = useState(null);
+<<<<<<< HEAD
   const [currentPriceData, setCurrentPriceData] = useState({
     size: "",
     price: "",
     salePrice: "",
   });
   const [tagInput, setTagInput] = useState("");
+=======
+  const [currentSizeData, setCurrentSizeData] = useState(initialSizeData);
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
 
   const { productList } = useSelector((state) => state.adminProducts);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
+<<<<<<< HEAD
   const handleAddTag = (e) => {
     if (e.key === "Enter" && tagInput.trim()) {
       setFormData((prev) => ({
@@ -105,11 +137,32 @@ function AdminProducts() {
       toast({
         title: "Error",
         description: "Please fill in all inventory details",
+=======
+  // Add size handler
+  const handleAddSize = () => {
+    // Validate size data before adding
+    if (
+      currentSizeData.size &&
+      currentSizeData.price &&
+      currentSizeData.totalStock
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        sizes: [...(prev.sizes || []), { ...currentSizeData }],
+      }));
+      // Reset current size data
+      setCurrentSizeData(initialSizeData);
+    } else {
+      toast({
+        title: "Error",
+        description: "Please fill in all size details",
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
         variant: "destructive",
       });
     }
   };
 
+<<<<<<< HEAD
   const handleRemoveInventory = (indexToRemove) => {
     setFormData((prev) => {
       const updatedInventory = prev.inventory.filter(
@@ -129,11 +182,28 @@ function AdminProducts() {
         sale_price: updatedSalePrice,
       };
     });
+=======
+  // Remove size handler
+  const handleRemoveSize = (indexToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      sizes: prev.sizes.filter((_, index) => index !== indexToRemove),
+    }));
+  };
+
+  // Handle brand input
+  const handleBrandChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      brand: e.target.value,
+    }));
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
   };
 
   function onSubmit(event) {
     event.preventDefault();
 
+<<<<<<< HEAD
     const isValid =
       formData.name &&
       formData.description &&
@@ -141,16 +211,31 @@ function AdminProducts() {
       formData.inventory.length > 0;
     // &&
     // imageFiles.length > 0;
+=======
+    // Validate form data
+    const isValid =
+      formData.title &&
+      formData.description &&
+      formData.category &&
+      formData.sizes.length > 0 &&
+      uploadedImageUrl;
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
 
     if (!isValid) {
       toast({
         title: "Validation Error",
+<<<<<<< HEAD
         description: "Please fill in all required fields and add inventory",
+=======
+        description:
+          "Please fill in all required fields and add at least one size",
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
         variant: "destructive",
       });
       return;
     }
 
+<<<<<<< HEAD
     const submitFormData = new FormData();
     const productData = {
       name: formData.name,
@@ -182,6 +267,36 @@ function AdminProducts() {
           title: `Product ${
             currentEditedId ? "updated" : "added"
           } successfully`,
+=======
+    const submitData = {
+      ...formData,
+      image: uploadedImageUrl,
+    };
+
+    currentEditedId !== null
+      ? dispatch(
+          addNewProduct({
+            id: currentEditedId,
+            formData: submitData,
+          })
+        ).then((data) => {
+          if (data?.payload?.success) {
+            dispatch(fetchAllProducts());
+            setFormData(initialFormData);
+            setOpenCreateProductsDialog(false);
+            setCurrentEditedId(null);
+            toast({ title: "Product updated successfully" });
+          }
+        })
+      : dispatch(addNewProduct(submitData)).then((data) => {
+          if (data?.payload?.success) {
+            dispatch(fetchAllProducts());
+            setOpenCreateProductsDialog(false);
+            setImageFile(null);
+            setFormData(initialFormData);
+            toast({ title: "Product added successfully" });
+          }
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
         });
       }
     });
@@ -231,7 +346,19 @@ function AdminProducts() {
             ))
           : null}
       </div>
+<<<<<<< HEAD
       <Sheet open={openCreateProductsDialog} onOpenChange={resetForm}>
+=======
+      <Sheet
+        open={openCreateProductsDialog}
+        onOpenChange={() => {
+          setOpenCreateProductsDialog(false);
+          setCurrentEditedId(null);
+          setFormData(initialFormData);
+          setCurrentSizeData(initialSizeData);
+        }}
+      >
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
         <SheetContent side="right" className="overflow-auto">
           <SheetHeader>
             <SheetTitle>
@@ -246,6 +373,7 @@ function AdminProducts() {
             setFormData={setFormData}
           />
           <div className="py-6 space-y-4">
+<<<<<<< HEAD
             <div className="grid grid-cols-2 gap-4">
               <Input
                 placeholder="Product Name"
@@ -304,12 +432,48 @@ function AdminProducts() {
                   value={currentInventoryData.size}
                   onChange={(e) =>
                     setCurrentInventoryData((prev) => ({
+=======
+            {/* Existing form elements */}
+            <CommonForm
+              formData={formData}
+              setFormData={setFormData}
+              formControls={addProductFormElements.filter(
+                (control) =>
+                  control.name !== "brand" &&
+                  control.name !== "price" &&
+                  control.name !== "salePrice" &&
+                  control.name !== "totalStock"
+              )}
+            />
+
+            {/* Brand Input */}
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                placeholder="Brand (Optional)"
+                value={formData.brand}
+                onChange={handleBrandChange}
+              />
+            </div>
+
+            {/* Size and Price Management */}
+            <div className="border p-4 rounded-md">
+              <h3 className="text-lg font-semibold mb-4">Product Sizes</h3>
+
+              {/* Size Input Fields */}
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                <Input
+                  placeholder="Size"
+                  value={currentSizeData.size}
+                  onChange={(e) =>
+                    setCurrentSizeData((prev) => ({
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
                       ...prev,
                       size: e.target.value,
                     }))
                   }
                 />
                 <Input
+<<<<<<< HEAD
                   placeholder="Quantity"
                   type="number"
                   value={currentInventoryData.quantity}
@@ -329,11 +493,20 @@ function AdminProducts() {
                     setCurrentPriceData((prev) => ({
                       ...prev,
                       size: currentInventoryData.size,
+=======
+                  placeholder="Price"
+                  type="number"
+                  value={currentSizeData.price}
+                  onChange={(e) =>
+                    setCurrentSizeData((prev) => ({
+                      ...prev,
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
                       price: e.target.value,
                     }))
                   }
                 />
                 <Input
+<<<<<<< HEAD
                   placeholder="Sale Price"
                   type="number"
                   value={currentPriceData.salePrice}
@@ -342,11 +515,21 @@ function AdminProducts() {
                       ...prev,
                       size: currentInventoryData.size,
                       salePrice: e.target.value || prev.price, // Default to regular price if empty
+=======
+                  placeholder="Stock"
+                  type="number"
+                  value={currentSizeData.totalStock}
+                  onChange={(e) =>
+                    setCurrentSizeData((prev) => ({
+                      ...prev,
+                      totalStock: e.target.value,
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
                     }))
                   }
                 />
                 <Button
                   variant="outline"
+<<<<<<< HEAD
                   className="col-span-4 mt-2"
                   onClick={handleAddInventory}
                 >
@@ -355,21 +538,40 @@ function AdminProducts() {
               </div>
 
               {formData?.inventory.map((inv, index) => (
+=======
+                  className="col-span-3 mt-2"
+                  onClick={handleAddSize}
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Size
+                </Button>
+              </div>
+
+              {/* Added Sizes List */}
+              {formData?.sizes.map((size, index) => (
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
                 <div
                   key={index}
                   className="flex items-center justify-between border p-2 rounded mb-2"
                 >
                   <div>
+<<<<<<< HEAD
                     Size: {inv.size} - Qty: {inv.quantity} - Price: ৳
                     {formData.price[inv.size]}
                     {formData.sale_price[inv.size] !==
                       formData.price[inv.size] &&
                       ` - Sale: ৳${formData.sale_price[inv.size]}`}
+=======
+                    {size.size} - ${size.price} (Stock: {size.totalStock})
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
+<<<<<<< HEAD
                     onClick={() => handleRemoveInventory(index)}
+=======
+                    onClick={() => handleRemoveSize(index)}
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
                   >
                     <Trash2 className="h-4 w-4 text-red-500" />
                   </Button>
@@ -377,6 +579,7 @@ function AdminProducts() {
               ))}
             </div>
 
+<<<<<<< HEAD
             <div className="border p-4 rounded-md">
               <h3 className="text-lg font-semibold mb-4">Product Tags</h3>
               <Input
@@ -415,6 +618,12 @@ function AdminProducts() {
                 !imageFiles // Change from !uploadedImageUrl to !imageFile
               }
               className="w-full"
+=======
+            {/* Submit Button */}
+            <Button
+              onClick={onSubmit}
+              disabled={formData.sizes.length === 0 || !uploadedImageUrl}
+>>>>>>> b8be50d (needs to fix the errors on add and edit product form redux)
             >
               {currentEditedId !== null ? "Update Product" : "Add Product"}
             </Button>
