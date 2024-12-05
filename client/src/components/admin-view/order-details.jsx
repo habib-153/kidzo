@@ -1,11 +1,11 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react";
 import CommonForm from "../common/form";
-import { DialogContent } from "../ui/dialog";
+import { DialogContent, DialogDescription, DialogTitle } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
 import { Badge } from "../ui/badge";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import {
   getAllOrdersForAdmin,
   getOrderDetailsForAdmin,
@@ -19,11 +19,11 @@ const initialFormData = {
 
 function AdminOrderDetailsView({ orderDetails }) {
   const [formData, setFormData] = useState(initialFormData);
-  const { user } = useSelector((state) => state.auth);
+  //const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
-  console.log(orderDetails, "orderDetailsorderDetails");
+  // console.log(orderDetails, "orderDetailsorderDetails");
 
   function handleUpdateStatus(event) {
     event.preventDefault();
@@ -44,30 +44,26 @@ function AdminOrderDetailsView({ orderDetails }) {
   }
 
   return (
-    <DialogContent className="sm:max-w-[600px]">
-      <div className="grid gap-6">
-        <div className="grid gap-2">
-          <div className="flex mt-6 items-center justify-between">
+    <DialogContent className="max-w-[90vw] sm:max-w-[80vw] lg:max-w-[70vw] max-h-[90vh] overflow-y-auto p-0">
+      <div className="text-center mt-3">
+        <DialogTitle>Order Details</DialogTitle>
+        <DialogDescription>Details of the selected order</DialogDescription>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-8 p-8 max-h-[70vh]">
+        {/* Order Info */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
             <p className="font-medium">Order ID</p>
             <Label>{orderDetails?._id}</Label>
           </div>
-          <div className="flex mt-2 items-center justify-between">
+          <div className="flex items-center justify-between">
             <p className="font-medium">Order Date</p>
-            <Label>{orderDetails?.orderDate.split("T")[0]}</Label>
+            <Label>
+              {new Date(orderDetails?.orderDate).toLocaleDateString()}
+            </Label>
           </div>
-          <div className="flex mt-2 items-center justify-between">
-            <p className="font-medium">Order Price</p>
-            <Label>${orderDetails?.totalAmount}</Label>
-          </div>
-          <div className="flex mt-2 items-center justify-between">
-            <p className="font-medium">Payment method</p>
-            <Label>{orderDetails?.paymentMethod}</Label>
-          </div>
-          <div className="flex mt-2 items-center justify-between">
-            <p className="font-medium">Payment Status</p>
-            <Label>{orderDetails?.paymentStatus}</Label>
-          </div>
-          <div className="flex mt-2 items-center justify-between">
+          <div className="flex items-center justify-between">
             <p className="font-medium">Order Status</p>
             <Label>
               <Badge
@@ -100,21 +96,62 @@ function AdminOrderDetailsView({ orderDetails }) {
                 : null}
             </ul>
           </div>
-        </div>
-        <div className="grid gap-4">
-          <div className="grid gap-2">
-            <div className="font-medium">Shipping Info</div>
-            <div className="grid gap-0.5 text-muted-foreground">
-              <span>{user.userName}</span>
-              <span>{orderDetails?.addressInfo?.address}</span>
-              <span>{orderDetails?.addressInfo?.city}</span>
-              <span>{orderDetails?.addressInfo?.pincode}</span>
-              <span>{orderDetails?.addressInfo?.phone}</span>
-              <span>{orderDetails?.addressInfo?.notes}</span>
-            </div>
+          <div className="flex items-center justify-between">
+            <p className="font-medium">Payment Status</p>
+            <Label>{orderDetails?.paymentStatus}</Label>
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="font-medium">Total Amount</p>
+            <Label>৳{orderDetails?.totalAmount.toFixed(2)}</Label>
           </div>
         </div>
 
+        {/* Shipping Info */}
+        <div className="space-y-4">
+          <div className="font-medium">Shipping Info</div>
+          <div className="grid gap-0.5 text-muted-foreground">
+            <span>{orderDetails?.addressInfo?.address}</span>
+            <span>{orderDetails?.addressInfo?.city}</span>
+            <span>{orderDetails?.addressInfo?.Name}</span>
+            <span>{orderDetails?.addressInfo?.phone}</span>
+            <span>{orderDetails?.addressInfo?.notes}</span>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Order Items */}
+      <div className="p-8 space-y-4">
+        <div className="font-medium">Order Items</div>
+        <ul className="grid gap-3">
+          {orderDetails?.cartItems?.map((item) => (
+            <li
+              key={item.productId + item.size}
+              className="flex items-center justify-between"
+            >
+              <div className="flex items-center gap-4">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-16 h-16 object-cover rounded"
+                />
+                <div>
+                  <h3 className="font-bold">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Size: {item.size}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Quantity: {item.quantity}
+                  </p>
+                </div>
+              </div>
+              <p className="font-bold">
+                ৳{(item.price * item.quantity).toFixed(2)}
+              </p>
+            </li>
+          ))}
+        </ul>
         <div>
           <CommonForm
             formControls={[
