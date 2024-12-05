@@ -32,7 +32,11 @@ function AdminOrdersView() {
     dispatch(getAllOrdersForAdmin());
   }, [dispatch]);
 
-  console.log(orderDetails, "orderList");
+  useEffect(() => {
+    if (orderDetails !== null) setOpenDetailsDialog(true);
+  }, [orderDetails]);
+
+  // console.log(orderDetails, "orderList");
 
   useEffect(() => {
     if (orderDetails !== null) setOpenDetailsDialog(true);
@@ -75,7 +79,7 @@ function AdminOrdersView() {
                         {orderItem?.orderStatus}
                       </Badge>
                     </TableCell>
-                    <TableCell>${orderItem?.totalAmount}</TableCell>
+                    <TableCell>৳{orderItem?.totalAmount}</TableCell>
                     <TableCell>
                       <Dialog
                         open={openDetailsDialog}

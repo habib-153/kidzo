@@ -11,7 +11,7 @@ const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
   const dispatch = useDispatch();
   const { cartItems } = useSelector((state) => state.shopCart);
   const { toast } = useToast();
-
+  console.log(cartItems);
   const basePrice = Object.entries(product?.price || {});
   const salePrice = Object.entries(product?.sale_price || {});
   const hasDiscount = salePrice.some(
@@ -52,13 +52,16 @@ const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
           </h2>
           <div className="flex justify-between items-center mb-3">
             <span className="text-sm text-neutral-600">
-              {categoryOptionsMap[product?.category]}
+              {product?.category}
             </span>
-            <span className="text-sm text-neutral-600">
-              {brandOptionsMap[product?.brand]}
-            </span>
+            <span className="text-sm text-neutral-600">{product?.brand}</span>
           </div>
           <div className="flex flex-col gap-1">
+            <span className="text-sm text-neutral-600">
+              {product?.description}
+            </span>
+          </div>
+          {/* <div className="flex flex-col gap-1">
             {basePrice.map(([size, price]) => (
               <div key={size} className="flex justify-between items-center">
                 <span className="text-sm text-neutral-600">Size {size}</span>
@@ -74,7 +77,7 @@ const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
                 </div>
               </div>
             ))}
-          </div>
+          </div> */}
         </CardContent>
       </div>
       <CardFooter className="p-4 bg-neutral-50">

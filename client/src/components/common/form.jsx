@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import {
@@ -110,7 +111,7 @@ function CommonForm({
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 py-3">
         {formControls.map((controlItem) => (
           <div className="grid w-full gap-1.5" key={controlItem.name}>
             <Label className="mb-1">{controlItem.label}</Label>

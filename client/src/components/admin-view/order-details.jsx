@@ -59,9 +59,7 @@ function AdminOrderDetailsView({ orderDetails }) {
           </div>
           <div className="flex items-center justify-between">
             <p className="font-medium">Order Date</p>
-            <Label>
-              {new Date(orderDetails?.orderDate).toLocaleDateString()}
-            </Label>
+            <Label>{new Date(orderDetails?.orderDate).toLocaleDateString()}</Label>
           </div>
           <div className="flex items-center justify-between">
             <p className="font-medium">Order Status</p>
@@ -95,6 +93,14 @@ function AdminOrderDetailsView({ orderDetails }) {
                   ))
                 : null}
             </ul>
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="font-medium">Payment Status</p>
+            <Label>{orderDetails?.paymentStatus}</Label>
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="font-medium">Total Amount</p>
+            <Label>৳{orderDetails?.totalAmount.toFixed(2)}</Label>
           </div>
           <div className="flex items-center justify-between">
             <p className="font-medium">Payment Status</p>

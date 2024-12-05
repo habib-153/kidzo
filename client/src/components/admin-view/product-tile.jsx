@@ -8,6 +8,7 @@ function AdminProductTile({
   setOpenCreateProductsDialog,
   setCurrentEditedId,
   handleDelete,
+  setImageFiles
 }) {
   return (
     <Card className="w-full max-w-sm mx-auto">
@@ -31,7 +32,7 @@ function AdminProductTile({
             >
               {Object.entries(product?.price || {}).map(([size, price]) => (
                 <div key={size}>
-                  Size {size}: ${price}
+                  Size {size}: ৳ {price}
                 </div>
               ))}
             </span>
@@ -41,7 +42,7 @@ function AdminProductTile({
                   {Object.entries(product.salePrice).map(
                     ([size, salePrice]) => (
                       <div key={size}>
-                        Sale Size {size}: ${salePrice}
+                        Sale Size {size}: ৳ {salePrice}
                       </div>
                     )
                   )}
@@ -55,6 +56,7 @@ function AdminProductTile({
               setOpenCreateProductsDialog(true);
               setCurrentEditedId(product?._id);
               setFormData(product);
+              setImageFiles([]);
             }}
           >
             Edit
