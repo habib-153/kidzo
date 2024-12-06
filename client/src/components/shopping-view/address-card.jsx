@@ -24,9 +24,9 @@ function AddressCard({
       }`}
     >
       <CardContent className="grid p-4 gap-4">
+      <Label>Name: {addressInfo?.Name}</Label>
         <Label>Address: {addressInfo?.address}</Label>
         <Label>City: {addressInfo?.city}</Label>
-        <Label>Name: {addressInfo?.Name}</Label>
         <Label>Phone: {addressInfo?.phone}</Label>
         <Label>Notes: {addressInfo?.notes}</Label>
       </CardContent>

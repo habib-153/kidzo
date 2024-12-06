@@ -4,60 +4,38 @@ import PropTypes from "prop-types";
 function CheckAuth({ isAuthenticated, user, children }) {
   const location = useLocation();
 
-  console.log(location.pathname, isAuthenticated);
-
+  // Root path redirect
   if (location.pathname === "/") {
+    return <Navigate to="/shop/home" />;
+  }
+
+  // Auth pages handling (login/register)
+  if (location.pathname.includes("/auth/")) {
+    if (isAuthenticated) {
+      return <Navigate to={user?.role === "admin" ? "/admin/dashboard" : "/shop/home"} />;
+    }
+    return children;
+  }
+
+  // Admin routes protection
+  if (location.pathname.includes("/admin")) {
     if (!isAuthenticated) {
-      return <Navigate to="/shop/home" />;
-    } else {
-      if (user?.role === "admin") {
-        return <Navigate to="/admin/dashboard" />;
-      } else {
-        return <Navigate to="/shop/home" />;
-      }
+      return <Navigate to="/auth/login" />;
     }
-  }
-
-  // if (
-  //   !isAuthenticated &&
-  //   !(
-  //     location.pathname.includes("/login") ||
-  //     location.pathname.includes("/register")
-  //   )
-  // ) {
-  //   return <Navigate to="/auth/login" />;
-  // }
-
-  if (
-    isAuthenticated &&
-    (location.pathname.includes("/login") ||
-      location.pathname.includes("/register"))
-  ) {
-    if (user?.role === "admin") {
-      return <Navigate to="/admin/dashboard" />;
-    } else {
-      return <Navigate to="/shop/home" />;
+    if (user?.role !== "admin") {
+      return <Navigate to="/unauth-page" />;
     }
+    return children;
   }
 
-  if (
-    isAuthenticated &&
-    user?.role !== "admin" &&
-    location.pathname.includes("admin")
-  ) {
-    return <Navigate to="/unauth-page" />;
+  // Shopping routes - accessible to all, but with user-specific features
+  if (location.pathname.includes("/shop")) {
+    return children;
   }
 
-  if (
-    isAuthenticated &&
-    user?.role === "admin" &&
-    location.pathname.includes("shop")
-  ) {
-    return <Navigate to="/admin/dashboard" />;
-  }
-
-  return <>{children}</>;
+  return children;
 }
+
 CheckAuth.propTypes = {
   isAuthenticated: PropTypes.bool.isRequired,
   user: PropTypes.shape({

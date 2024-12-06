@@ -3,13 +3,35 @@ import { AlignJustify, LogOut } from "lucide-react";
 import { Button } from "../ui/button";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "@/store/auth-slice";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
 
 function AdminHeader({ setOpen }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   function handleLogout() {
-    console.log("Logging out");
-    dispatch(logoutUser());
+    dispatch(logoutUser())
+      .then((response) => {
+        if (response?.payload?.success) {
+          toast({
+            title: "Logged out successfully",
+          });
+          navigate("/shop/home");
+        } else {
+          toast({
+            title: "Logout failed",
+            variant: "destructive",
+          });
+        }
+      })
+      .catch(() => {
+        toast({
+          title: "Logout failed",
+          variant: "destructive", 
+        });
+      });
   }
 
   return (
