@@ -48,7 +48,7 @@ function AdminOrdersView() {
         <CardTitle>All Orders</CardTitle>
       </CardHeader>
       <CardContent>
-        <Table>
+        <Table className="overflow-x-auto">
           <TableHeader>
             <TableRow>
               <TableHead>Order ID</TableHead>
