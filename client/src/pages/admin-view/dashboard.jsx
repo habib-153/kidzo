@@ -1,6 +1,7 @@
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import { Button } from "@/components/ui/button";
-import { addFeatureImage, getFeatureImages } from "@/store/common-slice";
+import { Trash2 } from "lucide-react";
+import { addFeatureImage, getFeatureImages, deleteFeatureImage } from "@/store/common-slice";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useToast } from "@/components/ui/use-toast";
@@ -23,6 +24,22 @@ function AdminDashboard() {
         });
         setImageFile(null);
         setUploadedImageUrl("");
+      }
+    });
+  }
+
+  function handleDeleteFeatureImage(id) {
+    dispatch(deleteFeatureImage(id)).then((data) => {
+      if (data?.payload?.success) {
+        dispatch(getFeatureImages());
+        toast({
+          title: "Image deleted successfully",
+        });
+      } else {
+        toast({
+          title: "Failed to delete image",
+          variant: "destructive",
+        });
       }
     });
   }
@@ -53,11 +70,20 @@ function AdminDashboard() {
       <div className="flex flex-col gap-4 mt-5">
         {featureImageList && featureImageList.length > 0
           ? featureImageList.map((featureImgItem) => (
-              <div key={featureImgItem.id} className="relative">
+              <div key={featureImgItem._id} className="relative group">
                 <img
                   src={featureImgItem.image}
                   className="w-full h-[300px] object-cover rounded-t-lg"
+                  alt="Feature"
                 />
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => handleDeleteFeatureImage(featureImgItem._id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             ))
           : null}

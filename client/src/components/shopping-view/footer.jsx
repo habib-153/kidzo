@@ -1,4 +1,5 @@
 import { FacebookIcon, InstagramIcon } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -6,9 +7,11 @@ const Footer = () => {
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Branding Section */}
         <div className="space-y-2">
-          <h2 className="text-4xl font-bold hover:text-blue-600 transition-colors duration-300">
-            Kidzo
-          </h2>
+        <Link to="/shop/home" className="flex items-center gap-2">
+          <div className="h-12 w-24 mb-4">
+            <img src="/kidzo.png" alt="kidzo logo" />
+          </div>
+        </Link>
           <p>Trade License: TRAD/DSCC/042498/2021</p>
           <p>BIN Certificate: 05343824-0201</p>
           <p>DBID: 140609027</p>
