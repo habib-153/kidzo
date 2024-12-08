@@ -21,7 +21,7 @@ import {
   fetchProductDetails,
 } from "@/store/shop/products-slice";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { getFeatureImages } from "@/store/common-slice";
 import Footer from "@/components/shopping-view/footer";
@@ -40,6 +40,7 @@ const brandsWithIcon = [
   { id: "zara", label: "Zara", icon: Images },
   { id: "h&m", label: "H&M", icon: Heater },
 ];
+
 function ShoppingHome() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { productList, productDetails } = useSelector(
@@ -51,6 +52,11 @@ function ShoppingHome() {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Filter featured products
+  const featuredProducts = productList
+    ? productList.filter((product) => product.isFeatured)
+    : [];
 
   function handleNavigateToListingPage(getCurrentItem, section) {
     sessionStorage.removeItem("filters");
@@ -179,20 +185,28 @@ function ShoppingHome() {
       <section className="py-12">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">
-            Feature Products
+            Featured Products
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {productList && productList.length > 0
-              ? productList.map((productItem, idx) => (
-                  <ShoppingProductTile
-                    key={idx}
-                    handleGetProductDetails={handleGetProductDetails}
-                    product={productItem}
-                    //handleAddtoCart={handleAddtoCart}
-                  />
-                ))
-              : null}
-          </div>
+          {featuredProducts.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {featuredProducts.map((productItem, idx) => (
+                <ShoppingProductTile
+                  key={idx}
+                  handleGetProductDetails={handleGetProductDetails}
+                  product={productItem}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">
+              No featured products available
+            </p>
+          )}
+        </div>
+        <div className="text-center mx-auto mt-4">
+          <Link to={"/shop/listing"}>
+            <Button>See All the Products</Button>
+          </Link>
         </div>
       </section>
       <ProductDetailsDialog
