@@ -55,7 +55,7 @@ function ShoppingHome() {
 
   // Filter featured products
   const featuredProducts = productList
-    ? productList.filter((product) => product.isFeatured)
+    ? productList.filter((product) => product.featured)
     : [];
 
   function handleNavigateToListingPage(getCurrentItem, section) {

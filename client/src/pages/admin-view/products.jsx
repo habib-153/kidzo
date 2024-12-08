@@ -42,7 +42,7 @@ const initialFormData = {
   price: {},
   sale_price: {},
   tags: [],
-  isFeatured: false, // New field
+  featured: false, // New field
 };
 
 function AdminProducts() {
@@ -163,7 +163,7 @@ function AdminProducts() {
       sale_price: formData.sale_price,
       tags: formData.tags.length ? formData.tags : ["product"],
       images: formData.images,
-      isFeatured: formData.isFeatured, // Include featured status
+      featured: formData.featured, // Include featured status
     };
 
     submitFormData.append("data", JSON.stringify(productData));
@@ -308,11 +308,11 @@ function AdminProducts() {
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="featured"
-                  checked={formData.isFeatured}
+                  checked={formData.featured}
                   onCheckedChange={(checked) =>
                     setFormData((prev) => ({
                       ...prev,
-                      isFeatured: checked,
+                      featured: checked,
                     }))
                   }
                 />
