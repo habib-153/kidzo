@@ -58,6 +58,11 @@ function ShoppingHome() {
     ? productList.filter((product) => product.featured)
     : [];
 
+  // Filter top product
+  const topProducts = productList
+    ? productList.filter((product) => product.featured)
+    : [];
+
   function handleNavigateToListingPage(getCurrentItem, section) {
     sessionStorage.removeItem("filters");
     const currentFilter = {
@@ -200,6 +205,26 @@ function ShoppingHome() {
           ) : (
             <p className="text-center text-gray-500">
               No featured products available
+            </p>
+          )}
+        </div>
+        <div className="container mx-auto px-4 py-4 md:py-8">
+          <h2 className="text-3xl font-bold text-center mb-8">
+            Top Selling Products
+          </h2>
+          {topProducts.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {topProducts.map((productItem, idx) => (
+                <ShoppingProductTile
+                  key={idx}
+                  handleGetProductDetails={handleGetProductDetails}
+                  product={productItem}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">
+              No top products available
             </p>
           )}
         </div>

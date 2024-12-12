@@ -2,7 +2,8 @@ const Order = require("../../models/Order");
 
 const getAllOrdersOfAllUsers = async (req, res) => {
   try {
-    const orders = await Order.find({});
+    // Sort orders by creation date descending (newest first)
+    const orders = await Order.find({}).sort({ createdAt: -1 });
 
     if (!orders.length) {
       return res.status(404).json({
@@ -16,10 +17,9 @@ const getAllOrdersOfAllUsers = async (req, res) => {
       data: orders,
     });
   } catch (e) {
-    // console.log(e);
     res.status(500).json({
       success: false,
-      message: "Some error occured!",
+      message: "Some error occurred!",
     });
   }
 };

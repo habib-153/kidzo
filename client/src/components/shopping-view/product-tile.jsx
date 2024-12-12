@@ -2,19 +2,32 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+// import { Helmet } from "react-helmet-async";
 
 const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
   // const { cartItems } = useSelector((state) => state.shopCart);
   //console.log(cartItems);
   const salePrice = Object.entries(product?.sale_price || {});
+  console.log(product);
   const hasDiscount = salePrice.some(
     ([size, price]) => price < (product?.price[size] || 0)
   );
   const isOutOfStock = product?.inventory.every((item) => !item.inStock);
   const hasLowStock = product?.inventory.some((item) => item.quantity < 10);
-
+  // const generateMetaDescription = () => {
+  //   if (product.length > 0) {
+  //     const productNames = product.name;
+  //     const productDetails = product.description.slice(0, 3).join(", ");
+  //     return `Explore our collection of ${productNames} and more.  High-quality products with various sizes and styles available. ${productDetails}`;
+  //   }
+  //   return "Browse our latest product collection with detailed information and pricing.";
+  // };
   return (
     <Card className="group w-full max-w-sm mx-auto overflow-hidden transition-all duration-300 hover:shadow-lg bg-white/95">
+      {/* <Helmet>
+        <title>Our Product Collection</title>
+        <meta name="description" content={generateMetaDescription()} />
+      </Helmet> */}
       <div
         onClick={() => handleGetProductDetails(product?._id)}
         className="cursor-pointer"

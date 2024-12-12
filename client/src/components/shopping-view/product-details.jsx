@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { StarIcon, Ruler, ShoppingBag, Heart } from "lucide-react";
+import { StarIcon, Ruler, ShoppingBag } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/components/ui/use-toast";
 import { addToCart } from "@/store/shop/cart-slice";
@@ -182,7 +182,7 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
                   size="icon"
                   className="text-rose-300 hover:text-rose-400"
                 >
-                  <Heart className="w-6 h-6" />
+                  {/* <Heart className="w-6 h-6" /> */}
                 </Button>
               </div>
               <p className="text-neutral-600 mb-4">
