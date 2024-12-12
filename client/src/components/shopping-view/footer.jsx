@@ -4,31 +4,33 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   return (
     <footer className="bg-gray-100 py-8">
-      <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Branding Section */}
-        <div className="space-y-2">
-        <Link to="/shop/home" className="flex items-center gap-2">
-          <div className="h-12 w-24 mb-4">
-            <img src="/kidzo.png" alt="kidzo logo" />
-          </div>
-        </Link>
-          <p>Trade License: TRAD/DSCC/042498/2021</p>
-          <p>BIN Certificate: 05343824-0201</p>
-          <p>DBID: 140609027</p>
+        <div className="my-auto mx-auto">
+          <Link to="/shop/home" className="flex items-center gap-2">
+            <div className="h-12 w-24 mb-4">
+              <img src="/kidzo.png" alt="kidzo logo" />
+            </div>
+          </Link>
+
           <div className="flex gap-4 mt-4">
             <a
               href="#"
               aria-label="Facebook"
               className="transform hover:scale-125 transition-transform duration-300"
             >
-              <i className="fab fa-facebook text-xl hover:text-blue-600"><FacebookIcon/></i>
+              <i className="fab fa-facebook text-xl hover:text-blue-600">
+                <FacebookIcon />
+              </i>
             </a>
             <a
               href="#"
               aria-label="Instagram"
               className="transform hover:scale-125 transition-transform duration-300"
             >
-              <i className="fab fa-instagram text-xl hover:text-pink-600"><InstagramIcon/></i>
+              <i className="fab fa-instagram text-xl hover:text-pink-600">
+                <InstagramIcon />
+              </i>
             </a>
           </div>
         </div>
@@ -52,7 +54,7 @@ const Footer = () => {
               },
               {
                 title: "Terms and Condition",
-                link: "#",
+                link: "/shop/terms",
               },
               {
                 title: "Shipping & Delivery Policy",
@@ -78,7 +80,7 @@ const Footer = () => {
         </div>
 
         {/* Information Section */}
-        <div>
+        {/* <div>
           <h3 className="text-lg font-bold mb-2">Information</h3>
           <ul className="space-y-2">
             {[
@@ -102,19 +104,19 @@ const Footer = () => {
               </li>
             ))}
           </ul>
-        </div>
+        </div> */}
 
         {/* Contact Section */}
         <div className="space-y-2">
           <h3 className="text-lg font-bold mb-2">Contact</h3>
           <p className="hover:bg-white hover:shadow-md p-2 rounded transition-all duration-300">
-            <strong>Phone:</strong> +8801971-113460
+            <strong>Phone:</strong> +8801910-963420
             <br />
-            <strong>Email:</strong> zuqowear@gmail.com
+            <strong>Email:</strong> kidzobd@gmail.com
           </p>
           <p className="hover:bg-white hover:shadow-md p-2 rounded transition-all duration-300">
-            <strong>Dhanmondi Outlet:</strong> Shop-321, 3rd floor, Metro
-            Shopping Mall, Dhanmondi-32, Dhaka.
+            <strong>Office: </strong>
+            81/4A West Brahmondi, Narsindi Sadar, Narsingdi.
           </p>
         </div>
       </div>
