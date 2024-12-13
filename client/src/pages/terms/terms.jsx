@@ -1,14 +1,7 @@
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Edit, Save, X, FileText } from "lucide-react";
+import { Edit, Save, X } from "lucide-react";
 
 const TermsAndConditions = () => {
   // Initial terms content
@@ -44,12 +37,14 @@ Last Updated: ${new Date().toLocaleDateString()}`;
 
   const [isEditing, setIsEditing] = useState(false);
   const [termsContent, setTermsContent] = useState(initialContent);
-  const [isAdmin, setIsAdmin] = useState(false); // Simulated admin state
 
-  // Simulated login/admin toggle (you'd replace this with actual authentication)
-  const toggleAdminMode = () => {
-    setIsAdmin(!isAdmin);
-  };
+  // Use Redux authentication
+  const { user, isAuthenticated, isLoading } = useSelector(
+    (state) => state.auth
+  );
+
+  // Determine if user is an admin
+  const isAdmin = isAuthenticated && user?.role === "admin";
 
   // Handle editing of terms
   const handleEdit = () => {
@@ -58,10 +53,12 @@ Last Updated: ${new Date().toLocaleDateString()}`;
 
   const handleSave = () => {
     setIsEditing(false);
+    // Optional: Add logic to save terms to backend
   };
 
   const handleCancel = () => {
     setIsEditing(false);
+    setTermsContent(initialContent);
   };
 
   // Render terms content
@@ -69,7 +66,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
     if (isEditing) {
       return (
         <textarea
-          className="w-full h-[500px] p-4 border rounded-md bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+          className="w-full h-[600px] p-4 border rounded-md bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
           value={termsContent}
           onChange={(e) => setTermsContent(e.target.value)}
         />
@@ -87,68 +84,53 @@ Last Updated: ${new Date().toLocaleDateString()}`;
     );
   };
 
+  // If loading, show a loading state
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div className="container mx-auto p-4">
-      {/* Admin Mode Toggle (for demonstration) */}
-      <div className="mb-4 flex items-center justify-end">
-        <Label className="mr-2">Admin Mode</Label>
-        <input
-          type="checkbox"
-          checked={isAdmin}
-          onChange={toggleAdminMode}
-          className="toggle toggle-primary"
-        />
+    <div className="container mx-auto p-6">
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-gray-800">
+            Terms & Conditions
+          </h1>
+          {isAdmin && !isEditing && (
+            <Button
+              variant="outline"
+              onClick={handleEdit}
+              className="hover:bg-blue-50 flex items-center"
+            >
+              <Edit className="w-4 h-4 mr-2" /> Edit Terms
+            </Button>
+          )}
+        </div>
+
+        {/* Terms Content */}
+        <div className="mt-4 relative">
+          {renderTermsContent()}
+
+          {/* Editing Controls */}
+          {isEditing && (
+            <div className="mt-4 flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={handleCancel}
+                className="hover:bg-red-50"
+              >
+                <X className="w-4 h-4 mr-2" /> Cancel
+              </Button>
+              <Button
+                onClick={handleSave}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Save className="w-4 h-4 mr-2" /> Save Changes
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
-
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            View Terms & Conditions
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex justify-between items-center">
-              <span>Terms & Conditions</span>
-              {isAdmin && !isEditing && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleEdit}
-                  className="hover:bg-blue-50"
-                >
-                  <Edit className="w-4 h-4 mr-2" /> Edit
-                </Button>
-              )}
-            </DialogTitle>
-          </DialogHeader>
-
-          {/* Terms Content */}
-          <div className="mt-4 relative">
-            {renderTermsContent()}
-
-            {/* Editing Controls */}
-            {isEditing && (
-              <div className="mt-4 flex justify-end space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={handleCancel}
-                  className="hover:bg-red-50"
-                >
-                  <X className="w-4 h-4 mr-2" /> Cancel
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <Save className="w-4 h-4 mr-2" /> Save Changes
-                </Button>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
