@@ -3,7 +3,7 @@ const Order = require("../../models/Order");
 const getAllOrdersOfAllUsers = async (req, res) => {
   try {
     // Sort orders by creation date descending (newest first)
-    const orders = await Order.find({}).sort({ createdAt: -1 });
+    const orders = await Order.find({}).sort({ orderDate: -1 });
 
     if (!orders.length) {
       return res.status(404).json({

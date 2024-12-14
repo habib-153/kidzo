@@ -1,3 +1,4 @@
+const Order = require("../../models/Order");
 const Product = require("../../models/Product");
 
 const getFilteredProducts = async (req, res) => {
@@ -54,6 +55,54 @@ const getFilteredProducts = async (req, res) => {
   }
 };
 
+const getTopSellingProducts = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+
+    const topProducts = await Order.aggregate([
+      { $match: { orderStatus: { $ne: "cancelled" } } }, // Exclude cancelled orders
+      { $unwind: "$cartItems" },
+      {
+        $group: {
+          _id: "$cartItems.productId",
+          totalQuantitySold: { $sum: "$cartItems.quantity" },
+          totalRevenue: { $sum: { $multiply: ["$cartItems.price", "$cartItems.quantity"] } }
+        }
+      },
+      { $sort: { totalQuantitySold: -1 } },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: "products",
+          let: { productId: { $toObjectId: "$_id" } },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$_id", "$$productId"] } } }
+          ],
+          as: "product"
+        }
+      },
+      {
+        $project: {
+          product: { $arrayElemAt: ["$product", 0] },
+          totalQuantitySold: 1,
+          totalRevenue: 1
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: topProducts
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({
+      success: false,
+      message: "Error occurred while fetching top products"
+    });
+  }
+}
+
 const getProductDetails = async (req, res) => {
   try {
     const { id } = req.params;
@@ -77,4 +126,4 @@ const getProductDetails = async (req, res) => {
   }
 };
 
-module.exports = { getFilteredProducts, getProductDetails };
+module.exports = { getFilteredProducts, getProductDetails, getTopSellingProducts };
