@@ -19,6 +19,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   fetchAllFilteredProducts,
   fetchProductDetails,
+  fetchTopSellingProducts,
 } from "@/store/shop/products-slice";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { Link, useNavigate } from "react-router-dom";
@@ -43,7 +44,7 @@ const brandsWithIcon = [
 
 function ShoppingHome() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const { productList, productDetails } = useSelector(
+  const { productList, productDetails, topSellingProducts } = useSelector(
     (state) => state.shopProducts
   );
   const { featureImageList } = useSelector((state) => state.commonFeature);
@@ -59,9 +60,11 @@ function ShoppingHome() {
     : [];
 
   // Filter top product
-  const topProducts = productList
-    ? productList.filter((product) => product.featured)
-    : [];
+  const topProducts = topSellingProducts?.map(item => ({
+    ...item.product,
+    totalQuantitySold: item.totalQuantitySold,
+    totalRevenue: item.totalRevenue
+  })) || [];
 
   function handleNavigateToListingPage(getCurrentItem, section) {
     sessionStorage.removeItem("filters");
@@ -94,6 +97,12 @@ function ShoppingHome() {
       fetchAllFilteredProducts({
         filterParams: {},
         sortParams: "price-lowtohigh",
+      })
+    );
+    dispatch(
+      fetchTopSellingProducts({
+        filterParams: {},
+        sortParams: "quantity-hightolow",
       })
     );
   }, [dispatch]);

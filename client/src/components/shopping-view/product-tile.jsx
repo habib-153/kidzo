@@ -8,7 +8,6 @@ const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
   // const { cartItems } = useSelector((state) => state.shopCart);
   //console.log(cartItems);
   const salePrice = Object.entries(product?.sale_price || {});
-  console.log(product);
   const hasDiscount = salePrice.some(
     ([size, price]) => price < (product?.price[size] || 0)
   );

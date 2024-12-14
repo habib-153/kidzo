@@ -5,13 +5,13 @@ import axios from "axios";
 const initialState = {
   isLoading: false,
   productList: [],
+  topSellingProducts: [],
   productDetails: null,
 };
 
 export const fetchAllFilteredProducts = createAsyncThunk(
   "/products/fetchAllProducts",
   async ({ filterParams, sortParams }) => {
-    //console.log(fetchAllFilteredProducts, "fetchAllFilteredProducts");
 
     const query = new URLSearchParams({
       ...filterParams,
@@ -22,6 +22,24 @@ export const fetchAllFilteredProducts = createAsyncThunk(
       `http://localhost:5000/api/shop/products/get?${query}`
     );
 
+    return result?.data;
+  }
+);
+
+export const fetchTopSellingProducts = createAsyncThunk(
+  "/products/fetchTopSellingProducts",
+  async ({ filterParams, sortParams }) => {
+
+    const query = new URLSearchParams({
+      ...filterParams,
+      sortBy: sortParams,
+      limit: 20,
+    });
+
+    const result = await axios.get(
+      `http://localhost:5000/api/shop/products/top-selling?${query}`
+    );
+console.log(result)
     return result?.data;
   }
 );
@@ -84,6 +102,17 @@ const shoppingProductSlice = createSlice({
       .addCase(fetchAllFilteredProducts.rejected, (state, action) => {
         state.isLoading = false;
         state.productList = [];
+      })
+      .addCase(fetchTopSellingProducts.pending, (state, action) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchTopSellingProducts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.topSellingProducts = action.payload.data;
+      })
+      .addCase(fetchTopSellingProducts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.topSellingProducts = [];
       })
       .addCase(fetchProductDetails.pending, (state, action) => {
         state.isLoading = true;
