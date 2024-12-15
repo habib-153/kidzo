@@ -23,8 +23,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { deleteProduct, fetchAllProducts } from "@/store/admin/products-slice";
 import ProductImageUpload from "@/components/admin-view/ProductImage";
 import { manageProduct } from "@/store/shop/products-slice";
+// Add these imports
+import { ChromePicker } from "react-color";
 
-const CATEGORIES = ["Boys", "Girls", "Footwears", "Home & Kitchen"];
+const CATEGORIES = ["Boys", "Girls"];
 
 const initialInventoryData = {
   size: "",
@@ -59,10 +61,42 @@ function AdminProducts() {
     salePrice: "",
   });
   const [tagInput, setTagInput] = useState("");
+  const [currentColorData, setCurrentColorData] = useState({
+    name: "",
+    images: [],
+  });
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const [currentColor, setCurrentColor] = useState("#000000");
 
   const { productList } = useSelector((state) => state.adminProducts);
   const dispatch = useDispatch();
   const { toast } = useToast();
+
+  const handleAddColor = () => {
+    if (currentColorData.name && currentColorData.images.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        colors: [...(prev.colors || []), currentColorData],
+      }));
+
+      // Reset color data
+      setCurrentColorData({ name: "", images: [] });
+      setColorPickerOpen(false);
+    } else {
+      toast({
+        title: "Error",
+        description: "Please select color name and upload images",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveColor = (colorToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      colors: prev.colors.filter((color) => color.name !== colorToRemove),
+    }));
+  };
 
   const handleAddTag = (e) => {
     if (e.key === "Enter" && tagInput.trim()) {
@@ -407,7 +441,89 @@ function AdminProducts() {
                   </div>
                 ))}
               </div>
+              <div className="border p-4 rounded-md mb-4">
+                <h3 className="text-lg font-semibold mb-4">Product Colors</h3>
 
+                {/* Color Name Input */}
+                <div className="flex items-center gap-2 mb-4">
+                  <Input
+                    placeholder="Color Name"
+                    value={currentColorData.name}
+                    onChange={(e) =>
+                      setCurrentColorData((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => setColorPickerOpen(!colorPickerOpen)}
+                  >
+                    Pick Color
+                  </Button>
+                  {colorPickerOpen && (
+                    <ChromePicker
+                      color={currentColor}
+                      onChange={(color) => {
+                        setCurrentColor(color.hex);
+                        setCurrentColorData((prev) => ({
+                          ...prev,
+                          name: color.hex,
+                        }));
+                      }}
+                    />
+                  )}
+                </div>
+
+                {/* Color Image Upload */}
+                <ProductImageUpload
+                  imageFiles={currentColorData.images}
+                  setImageFiles={(files) =>
+                    setCurrentColorData((prev) => ({
+                      ...prev,
+                      images: files,
+                    }))
+                  }
+                  isEditMode={false}
+                  initialImages={[]}
+                  setFormData={setFormData}
+                />
+
+                <Button
+                  variant="outline"
+                  className="mt-2"
+                  onClick={handleAddColor}
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Color
+                </Button>
+
+                {/* Display Added Colors */}
+                <div className="mt-4 space-y-2">
+                  {formData.colors?.map((color) => (
+                    <div
+                      key={color.name}
+                      className="flex items-center justify-between border p-2 rounded"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-6 h-6 rounded-full"
+                          style={{ backgroundColor: color.name }}
+                        />
+                        <span>{color.name}</span>
+                        <span>({color.images.length} images)</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveColor(color.name)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
               <div className="border p-4 rounded-md">
                 <h3 className="text-lg font-semibold mb-4">Product Tags</h3>
                 <Input

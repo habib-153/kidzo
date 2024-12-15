@@ -47,19 +47,105 @@ const addProduct = async (req, res) => {
 };
 
 //fetch all products
-
 const fetchAllProducts = async (req, res) => {
   try {
-    const listOfProducts = await Product.find({});
+    const { 
+      category, 
+      subcategory, 
+      sortParams = 'price-lowtohigh', 
+      ...otherFilters 
+    } = req.query;
+
+    // Build query object
+    const query = {};
+    
+    // Add category filter
+    if (category) {
+      query.category = category;
+    }
+
+    // Add subcategory filter
+    if (subcategory) {
+      query.subcategory = subcategory;
+    }
+
+    // Add other filters
+    Object.keys(otherFilters).forEach(key => {
+      if (otherFilters[key]) {
+        query[key] = { $in: otherFilters[key].split(',') };
+      }
+    });
+
+    // Sorting logic
+    let sort = {};
+    switch(sortParams) {
+      case 'price-lowtohigh':
+        sort = { 'price': 1 };
+        break;
+      case 'price-hightolow':
+        sort = { 'price': -1 };
+        break;
+      case 'newest':
+        sort = { 'createdAt': -1 };
+        break;
+      default:
+        sort = { 'createdAt': -1 };
+    }
+
+    // Fetch products with dynamic filtering and sorting
+    const listOfProducts = await Product.find(query).sort(sort);
+
     res.status(200).json({
       success: true,
       data: listOfProducts,
     });
   } catch (e) {
-    // console.log(e);
     res.status(500).json({
       success: false,
-      message: "Error occured",
+      message: "Error occurred while fetching products",
+      error: e.message
+    });
+  }
+};
+
+// Add method to get subcategories
+const getSubcategoriesByCategory = async (req, res) => {
+  try {
+    const { category } = req.params;
+    
+    // First, check if subcategories exist in database
+    const subcategories = await SubCategory.find({ category });
+
+    // If no subcategories, create default ones based on existing products
+    if (subcategories.length === 0) {
+      const productSubcategories = await Product.distinct('subcategory', { category });
+      
+      // Create subcategories for each unique subcategory found in products
+      const newSubcategories = await Promise.all(
+        productSubcategories.map(async (subcategoryName) => {
+          const newSubcategory = new SubCategory({
+            name: subcategoryName,
+            category: category
+          });
+          return newSubcategory.save();
+        })
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: newSubcategories
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: subcategories
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching subcategories",
+      error: error.message
     });
   }
 };
@@ -119,10 +205,48 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+// adding color to product
+const addColorToProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { color, images } = req.body;
+
+    const product = await Product.findById(id);
+    
+    if (!product) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Product not found" 
+      });
+    }
+
+    // Add color and images
+    product.colors.push({ 
+      name: color, 
+      images: images 
+    });
+
+    await product.save();
+
+    res.status(200).json({
+      success: true,
+      data: product
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error adding color",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   handleImageUpload,
   addProduct,
   fetchAllProducts,
   editProduct,
   deleteProduct,
+  addColorToProduct,
+  getSubcategoriesByCategory
 };

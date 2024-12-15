@@ -12,6 +12,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { sortOptions } from "@/config";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
+
 import {
   fetchAllFilteredProducts,
   fetchProductDetails,
