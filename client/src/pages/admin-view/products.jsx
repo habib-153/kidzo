@@ -78,19 +78,10 @@ function AdminProducts() {
         ...prev,
         colors: [...(prev.colors || []), currentColorData],
       }));
-
-      // Reset color data
       setCurrentColorData({ name: "", images: [] });
       setColorPickerOpen(false);
-    } else {
-      toast({
-        title: "Error",
-        description: "Please select color name and upload images",
-        variant: "destructive",
-      });
     }
   };
-
   const handleRemoveColor = (colorToRemove) => {
     setFormData((prev) => ({
       ...prev,
@@ -441,11 +432,11 @@ function AdminProducts() {
                   </div>
                 ))}
               </div>
-              <div className="border p-4 rounded-md mb-4">
+              <div className="border p-4 rounded-md mb-4 flex flex-col">
                 <h3 className="text-lg font-semibold mb-4">Product Colors</h3>
 
                 {/* Color Name Input */}
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex flex-col items-center gap-2 mb-4">
                   <Input
                     placeholder="Color Name"
                     value={currentColorData.name}
@@ -459,6 +450,7 @@ function AdminProducts() {
                   <Button
                     variant="outline"
                     onClick={() => setColorPickerOpen(!colorPickerOpen)}
+                    className="w-full"
                   >
                     Pick Color
                   </Button>

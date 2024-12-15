@@ -132,7 +132,7 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
     : 0;
 
   const inventory = selectedSize
-    ? productDetails.inventory.find((item) => item.size === selectedSize)
+    ? productDetails?.inventory.find((item) => item.size === selectedSize)
     : null;
   const maxQuantity = inventory ? inventory.quantity : 0;
 
@@ -150,7 +150,8 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
               />
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2">
-              {productDetails?.images.map((img, index) => (
+              {/* check this line, the code is not working here */}
+              {productDetails?.images?.map((img, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
@@ -304,7 +305,20 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
                   </Table>
                 </div>
               )}
-
+              <div>
+                {productDetails?.colors?.map((color, index) => (
+                  <div key={index}>
+                    <h3>{color?.name}</h3>
+                    {color?.images?.map((image, imgIndex) => (
+                      <img
+                        key={imgIndex}
+                        src={image}
+                        alt={`${color?.name} color`}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
               {/* Quantity Selection */}
               <div className="mb-6">
                 <Label className="text-sm font-medium text-neutral-700 mb-2 block">
