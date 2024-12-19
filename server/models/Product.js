@@ -1,20 +1,87 @@
 const mongoose = require('mongoose');
 
 const ProductSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  description: { type: String, required: true },
-  images: { type: Map, of: [String], required: true },
-  price: { type: Map, of: Number, required: true },
-  sale_price: { type: Map, of: Number, required: true },
-  category: { type: String, required: true },
-  subcategory: { type: String },
-  tags: { type: [String], required: true },
-  inventory: [{ size: { type: String, required: true }, color: { type: String, required: true }, quantity: { type: Number, required: true }, inStock: { type: Boolean, required: true } }],
-  colors: [{ name: { type: String, required: true }, images: { type: [String], required: true } }],
+  name: { 
+    type: String, 
+    required: true 
+  },
+  description: { 
+    type: String, 
+    required: true 
+  },
+  category: { 
+    type: String, 
+    required: true 
+  },
+  subcategory: { 
+    type: String 
+  },
   brand: String,
-  totalStock: Number,
-  averageReview: Number,
-  featured: { type: Boolean, default: false }
-}, { timestamps: true });
+  tags: { 
+    type: [String], 
+    default: ['product'] 
+  },
+  variants: [{
+    color: { 
+      type: String, 
+      required: true 
+    },
+    image: { 
+      type: String, 
+      required: true 
+    },
+    sizes: [{
+      size: { 
+        type: String, 
+        required: true 
+      },
+      price: { 
+        type: Number, 
+        required: true,
+        min: 0
+      },
+      salePrice: { 
+        type: Number,
+        min: 0,
+      },
+      quantity: { 
+        type: Number, 
+        required: true,
+        min: 0,
+        default: 0
+      },
+      inStock: {
+        type: Boolean,
+        default: function() {
+          return this.quantity > 0;
+        }
+      }
+    }]
+  }],
+  totalStock: {
+    type: Number,
+    default: 0
+  },
+  averageReview: {
+    type: Number,
+    default: 0
+  },
+  featured: { 
+    type: Boolean, 
+    default: false 
+  }
+}, { 
+  timestamps: true 
+});
+
+// Calculate total stock before saving
+ProductSchema.pre('save', function(next) {
+  this.totalStock = this.variants.reduce((total, variant) => {
+    return total + variant.sizes.reduce((sizeTotal, size) => {
+      return sizeTotal + size.quantity;
+    }, 0);
+  }, 0);
+  next();
+});
 
 module.exports = mongoose.model('Product', ProductSchema);

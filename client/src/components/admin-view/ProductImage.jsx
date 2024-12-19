@@ -3,134 +3,87 @@
 import { UploadCloudIcon, XIcon } from "lucide-react";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "../ui/button";
 
 function ProductImageUpload({
-  imageFiles,
-  setImageFiles,
-  isEditMode,
-  isCustomStyling = false,
-  initialImages = [],
-  setFormData
+  currentImage,
+  setCurrentImage,
+  isEditMode = false
 }) {
   const inputRef = useRef(null);
-  const [imagePreviews, setImagePreviews] = useState([]);
+  const [imagePreview, setImagePreview] = useState(null);
 
-  useEffect(() => {
-    if (initialImages.length > 0) {
-      setImagePreviews(initialImages);
+  function handleImageChange(event) {
+    const file = event.target.files[0];
+    if (file) {
+      setCurrentImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
-  }, [initialImages]);
-
-  function handleImageFileChange(event) {
-    const files = event.target.files;
-    if (files) {
-      const newFiles = Array.from(files);
-      setImageFiles((prev) => [...prev, ...newFiles]);
-
-      newFiles.forEach((file) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreviews((prev) => [...prev, reader.result]);
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-  }
-
-  function handleDragOver(event) {
-    event.preventDefault();
   }
 
   function handleDrop(event) {
     event.preventDefault();
-    const files = event.dataTransfer.files;
-    if (files) {
-      const newFiles = Array.from(files);
-      setImageFiles((prev) => [...prev, ...newFiles]);
-
-      newFiles.forEach((file) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreviews((prev) => [...prev, reader.result]);
-        };
-        reader.readAsDataURL(file);
-      });
+    const file = event.dataTransfer.files[0];
+    if (file) {
+      setCurrentImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   }
 
-  function removeImage(index) {
-    if (index < initialImages.length) {
-      setFormData(prev => ({
-        ...prev,
-        images: prev.images.filter((_, i) => i !== index)
-      }));
-    }
-    else {
-      const newFileIndex = index - initialImages.length;
-      setImageFiles(prev => prev.filter((_, i) => i !== newFileIndex));
-    }
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  function removeImage() {
+    setCurrentImage(null);
+    setImagePreview(null);
   }
-
 
   return (
-    <div className={`w-full mt-4 ${isCustomStyling ? "" : "max-w-md mx-auto"}`}>
-      <Label className="text-lg font-semibold mb-2 block">Upload Images</Label>
+    <div className="w-full mt-4">
+      <Label className="text-lg font-semibold mb-2 block">Variant Image</Label>
       <div
-        onDragOver={handleDragOver}
+        onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
-        className={`${
-          isEditMode ? "opacity-60" : ""
-        } border-2 border-dashed rounded-lg p-4`}
+        className={`${isEditMode ? "opacity-60" : ""} border-2 border-dashed rounded-lg p-4`}
       >
         <Input
-          id="image-upload"
           type="file"
-          multiple
           accept="image/*"
           className="hidden"
           ref={inputRef}
-          onChange={handleImageFileChange}
+          onChange={handleImageChange}
           disabled={isEditMode}
         />
-        {imagePreviews?.length === 0 ? (
+        
+        {!imagePreview ? (
           <Label
-            htmlFor="image-upload"
-            className={`${
-              isEditMode ? "cursor-not-allowed" : ""
-            } flex flex-col items-center justify-center h-32 cursor-pointer`}
+            onClick={() => !isEditMode && inputRef.current?.click()}
+            className="flex flex-col items-center justify-center h-32 cursor-pointer"
           >
             <UploadCloudIcon className="w-10 h-10 text-muted-foreground mb-2" />
-            <span>Drag & drop or click to upload images</span>
+            <span>Drag & drop or click to upload image</span>
           </Label>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {imagePreviews?.map((preview, index) => (
-              <div key={index} className="relative group">
-                <img
-                  src={preview}
-                  alt={`Preview ${index + 1}`}
-                  className="w-full h-24 object-cover rounded"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => removeImage(index)}
-                >
-                  <XIcon className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
-            <Label
-              htmlFor="image-upload"
-              className="flex flex-col items-center justify-center h-24 border-2 border-dashed rounded cursor-pointer"
+          <div className="relative group">
+            <img
+              src={imagePreview}
+              alt="Preview"
+              className="w-full h-48 object-cover rounded"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={removeImage}
             >
-              <UploadCloudIcon className="w-6 h-6 text-muted-foreground mb-1" />
-              <span className="text-sm">Add more</span>
-            </Label>
+              <XIcon className="w-4 h-4" />
+            </Button>
           </div>
         )}
       </div>

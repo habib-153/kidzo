@@ -23,25 +23,31 @@ const handleImageUpload = async (req, res) => {
 //add a new product
 const addProduct = async (req, res) => {
   try {
-    const payload = req.body
-
-    const { Images } = req.files;
-
-    if(Images){
-      payload.images = Images.map((image) => image.path);
+    const payload = JSON.parse(req.body.data);
+    
+    // Handle variant images
+    if (req.files) {
+      payload.variants = await Promise.all(payload.variants.map(async (variant, index) => {
+        const image = req.files[`variantImage_${index}`][0];
+        const uploadedImage = await imageUploadUtil(image.path);
+        return {
+          ...variant,
+          image: uploadedImage.secure_url
+        };
+      }));
     }
-    const newlyCreatedProduct = new Product(payload);
 
-    await newlyCreatedProduct.save();
+    const newProduct = new Product(payload);
+    await newProduct.save();
+
     res.status(201).json({
       success: true,
-      data: newlyCreatedProduct,
+      data: newProduct
     });
-  } catch (e) {
-    // console.log(e);
+  } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error occured",
+      message: "Error occurred while adding product"
     });
   }
 };

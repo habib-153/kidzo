@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Trash2, PlusCircle } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import AdminProductTile from "@/components/admin-view/product-tile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,71 +23,48 @@ import { useToast } from "@/components/ui/use-toast";
 import { deleteProduct, fetchAllProducts } from "@/store/admin/products-slice";
 import ProductImageUpload from "@/components/admin-view/ProductImage";
 import { manageProduct } from "@/store/shop/products-slice";
-// Add these imports
 import { ChromePicker } from "react-color";
 
 const CATEGORIES = ["Boys", "Girls"];
 
-const initialInventoryData = {
+const initialVariantData = {
+  color: "",
+  image: "",
+  sizes: []
+};
+
+const initialSizeData = {
   size: "",
-  quantity: "",
-  inStock: true,
+  price: "",
+  salePrice: "",
+  quantity: 0
 };
 
 const initialFormData = {
   name: "",
   description: "",
   category: "",
+  subcategory: "",
   brand: "",
-  images: [],
-  inventory: [],
-  price: {},
-  sale_price: {},
   tags: [],
-  featured: false, // New field
+  variants: [],
+  featured: false
 };
 
 function AdminProducts() {
-  const [openCreateProductsDialog, setOpenCreateProductsDialog] =
-    useState(false);
+  const [openCreateProductsDialog, setOpenCreateProductsDialog] = useState(false);
   const [formData, setFormData] = useState(initialFormData);
-  const [currentInventoryData, setCurrentInventoryData] =
-    useState(initialInventoryData);
+  const [currentSize, setCurrentSize] = useState(initialSizeData);
+  const [currentVariant, setCurrentVariant] = useState(initialVariantData);
   const [imageFiles, setImageFiles] = useState([]);
   const [currentEditedId, setCurrentEditedId] = useState(null);
-  const [currentPriceData, setCurrentPriceData] = useState({
-    size: "",
-    price: "",
-    salePrice: "",
-  });
-  const [tagInput, setTagInput] = useState("");
-  const [currentColorData, setCurrentColorData] = useState({
-    name: "",
-    images: [],
-  });
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const [tagInput, setTagInput] = useState("");
   const [currentColor, setCurrentColor] = useState("#000000");
 
   const { productList } = useSelector((state) => state.adminProducts);
   const dispatch = useDispatch();
   const { toast } = useToast();
-
-  const handleAddColor = () => {
-    if (currentColorData.name && currentColorData.images.length > 0) {
-      setFormData((prev) => ({
-        ...prev,
-        colors: [...(prev.colors || []), currentColorData],
-      }));
-      setCurrentColorData({ name: "", images: [] });
-      setColorPickerOpen(false);
-    }
-  };
-  const handleRemoveColor = (colorToRemove) => {
-    setFormData((prev) => ({
-      ...prev,
-      colors: prev.colors.filter((color) => color.name !== colorToRemove),
-    }));
-  };
 
   const handleAddTag = (e) => {
     if (e.key === "Enter" && tagInput.trim()) {
@@ -106,121 +83,83 @@ function AdminProducts() {
     }));
   };
 
-  const handleAddInventory = () => {
-    if (
-      currentInventoryData.size &&
-      currentInventoryData.quantity &&
-      currentPriceData.price
-    ) {
-      setFormData((prev) => ({
+  const handleAddSize = () => {
+    if (currentSize.size && currentSize.price && currentSize.quantity) {
+      setCurrentVariant(prev => ({
         ...prev,
-        inventory: [...(prev.inventory || []), { ...currentInventoryData }],
-        price: {
-          ...prev.price,
-          [currentPriceData.size]: Number(currentPriceData.price),
-        },
-        sale_price: {
-          ...prev.sale_price,
-          [currentPriceData.size]: Number(
-            currentPriceData.salePrice || currentPriceData.price
-          ),
-        },
+        sizes: [...prev.sizes, {...currentSize}]
       }));
-
-      setCurrentInventoryData(initialInventoryData);
-      setCurrentPriceData({ size: "", price: "", salePrice: "" });
+      setCurrentSize(initialSizeData);
     } else {
       toast({
         title: "Error",
-        description: "Please fill in all inventory details",
-        variant: "destructive",
+        description: "Please fill in all size details",
+        variant: "destructive"
       });
     }
   };
 
-  const handleRemoveInventory = (indexToRemove) => {
-    setFormData((prev) => {
-      const updatedInventory = prev.inventory.filter(
-        (_, index) => index !== indexToRemove
-      );
-      const updatedPrice = { ...prev.price };
-      const updatedSalePrice = { ...prev.sale_price };
-
-      const removedSize = prev.inventory[indexToRemove].size;
-      delete updatedPrice[removedSize];
-      delete updatedSalePrice[removedSize];
-
-      return {
+  const handleAddVariant = () => {
+    if (currentVariant.color && currentVariant.image && currentVariant.sizes.length > 0) {
+      setFormData(prev => ({
         ...prev,
-        inventory: updatedInventory,
-        price: updatedPrice,
-        sale_price: updatedSalePrice,
-      };
-    });
+        variants: [...prev.variants, {...currentVariant}]
+      }));
+      setCurrentVariant(initialVariantData);
+      setColorPickerOpen(false);
+    } else {
+      toast({
+        title: "Error", 
+        description: "Please add color, image and at least one size",
+        variant: "destructive"
+      });
+    }
   };
 
-  function onSubmit(event) {
+  const onSubmit = (event) => {
     event.preventDefault();
 
-    const isValid =
+    const isValid = 
       formData.name &&
       formData.description &&
       formData.category &&
-      formData.inventory.length > 0;
+      formData.variants.length > 0;
 
     if (!isValid) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields and add inventory",
-        variant: "destructive",
+        description: "Please fill all required fields and add at least one variant",
+        variant: "destructive"
       });
       return;
     }
 
     const submitFormData = new FormData();
-    const productData = {
-      name: formData.name,
-      description: formData.description,
-      category: formData.category,
-      brand: formData.brand || "",
-      inventory: formData.inventory,
-      price: formData.price,
-      sale_price: formData.sale_price,
-      tags: formData.tags.length ? formData.tags : ["product"],
-      images: formData.images,
-      featured: formData.featured, // Include featured status
-    };
-
-    submitFormData.append("data", JSON.stringify(productData));
-    imageFiles.forEach((file) => {
+    submitFormData.append("data", JSON.stringify(formData));
+    
+    imageFiles.forEach(file => {
       submitFormData.append("Images", file);
     });
 
-    dispatch(
-      manageProduct({
-        id: currentEditedId,
-        formData: submitFormData,
-      })
-    ).then((data) => {
+    dispatch(manageProduct({
+      id: currentEditedId,
+      formData: submitFormData
+    })).then(data => {
       if (data?.payload?.success) {
         dispatch(fetchAllProducts());
         resetForm();
         toast({
-          title: `Product ${
-            currentEditedId ? "updated" : "added"
-          } successfully`,
+          title: `Product ${currentEditedId ? "updated" : "added"} successfully`
         });
       }
     });
-  }
+  };
 
   function resetForm() {
     setFormData(initialFormData);
     setOpenCreateProductsDialog(false);
     setCurrentEditedId(null);
-    setImageFiles(null);
-    setCurrentInventoryData(initialInventoryData);
-    setCurrentPriceData({ size: "", price: "", salePrice: "" });
+    setImageFiles([]);
   }
 
   function handleDelete(getCurrentProductId) {
@@ -272,13 +211,6 @@ function AdminProducts() {
                 {currentEditedId !== null ? "Edit Product" : "Add New Product"}
               </SheetTitle>
             </SheetHeader>
-            <ProductImageUpload
-              imageFiles={imageFiles}
-              setImageFiles={setImageFiles}
-              isEditMode={currentEditedId !== null}
-              initialImages={currentEditedId ? formData.images : []}
-              setFormData={setFormData}
-            />
             <div className="py-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
@@ -329,7 +261,6 @@ function AdminProducts() {
                 }
               />
 
-              {/* Featured Toggle */}
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="featured"
@@ -349,173 +280,108 @@ function AdminProducts() {
                 </Label>
               </div>
 
-              <div className="border p-2 rounded-md">
-                <h3 className="text-lg font-semibold mb-4">
-                  Product Inventory
-                </h3>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+              <div className="border p-4 rounded-md mb-4 flex flex-col">
+                <h3 className="text-lg font-semibold mb-4">Product Variants</h3>
+                
+                <div className="flex gap-4 mb-4">
                   <Input
-                    placeholder="Size"
-                    value={currentInventoryData.size}
-                    onChange={(e) =>
-                      setCurrentInventoryData((prev) => ({
-                        ...prev,
-                        size: e.target.value,
-                      }))
-                    }
+                    placeholder="Color Name" 
+                    value={currentVariant.color}
+                    onChange={e => setCurrentVariant(prev => ({
+                      ...prev,
+                      color: e.target.value
+                    }))}
                   />
-                  <Input
-                    placeholder="Quantity"
-                    type="number"
-                    value={currentInventoryData.quantity}
-                    onChange={(e) =>
-                      setCurrentInventoryData((prev) => ({
-                        ...prev,
-                        quantity: e.target.value,
-                        inStock: Number(e.target.value) > 0,
-                      }))
-                    }
-                  />
-                  <Input
-                    placeholder="Price"
-                    type="number"
-                    value={currentPriceData.price}
-                    onChange={(e) =>
-                      setCurrentPriceData((prev) => ({
-                        ...prev,
-                        size: currentInventoryData.size,
-                        price: e.target.value,
-                      }))
-                    }
-                  />
-                  <Input
-                    placeholder="Sale Price"
-                    type="number"
-                    value={currentPriceData.salePrice}
-                    onChange={(e) =>
-                      setCurrentPriceData((prev) => ({
-                        ...prev,
-                        size: currentInventoryData.size,
-                        salePrice: e.target.value || prev.price,
-                      }))
-                    }
-                  />
-                  <Button
-                    variant="outline"
-                    className="col-span-2 sm:col-span-4 mt-2"
-                    onClick={handleAddInventory}
-                  >
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Inventory
+                  <Button onClick={() => setColorPickerOpen(!colorPickerOpen)}>
+                    Pick Color
                   </Button>
                 </div>
-
-                {formData?.inventory.map((inv, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between border p-2 rounded mb-2"
-                  >
-                    <div>
-                      Size: {inv.size} - Qty: {inv.quantity} - Price: ৳
-                      {formData.price[inv.size]}
-                      {formData.sale_price[inv.size] !==
-                        formData.price[inv.size] &&
-                        ` - Sale: ৳${formData.sale_price[inv.size]}`}
+              
+                {colorPickerOpen && (
+                  <ChromePicker
+                    color={currentColor}
+                    onChangeComplete={(color) => {
+                      setCurrentColor(color.hex);
+                      setCurrentVariant((prev) => ({
+                        ...prev,
+                        color: color.hex,
+                      }));
+                    }}
+                  />
+                )}
+              
+                <ProductImageUpload
+                  currentImage={currentVariant.image}
+                  setCurrentImage={(file) => setCurrentVariant(prev => ({
+                    ...prev, 
+                    image: file
+                  }))}
+                />
+              
+                <div className="grid grid-cols-4 gap-2">
+                  <Input 
+                    placeholder="Size"
+                    value={currentSize.size}
+                    onChange={e => setCurrentSize(prev => ({
+                      ...prev,
+                      size: e.target.value
+                    }))}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Price"
+                    value={currentSize.price}
+                    onChange={e => setCurrentSize(prev => ({
+                      ...prev,
+                      price: e.target.value
+                    }))}
+                  />
+                  <Input
+                    type="number" 
+                    placeholder="Sale Price"
+                    value={currentSize.salePrice}
+                    onChange={e => setCurrentSize(prev => ({
+                      ...prev,
+                      salePrice: e.target.value
+                    }))}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Quantity"
+                    value={currentSize.quantity} 
+                    onChange={e => setCurrentSize(prev => ({
+                      ...prev,
+                      quantity: parseInt(e.target.value)
+                    }))}
+                  />
+                </div>
+              
+                <Button onClick={handleAddSize}>Add Size</Button>
+                <Button onClick={handleAddVariant}>Add Variant</Button>
+              
+                {formData.variants.map((variant, idx) => (
+                  <div key={idx} className="border p-2 mt-2">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-6 h-6 rounded-full"
+                        style={{backgroundColor: variant.color}}
+                      />
+                      <span>{variant.color}</span>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveInventory(index)}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
+                    
+                    <div className="mt-2">
+                      {variant.sizes.map((size, sizeIdx) => (
+                        <div key={sizeIdx}>
+                          Size: {size.size} - Price: ৳{size.price}
+                          {size.salePrice && ` - Sale: ৳${size.salePrice}`}
+                          - Qty: {size.quantity}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
-              <div className="border p-4 rounded-md mb-4 flex flex-col">
-                <h3 className="text-lg font-semibold mb-4">Product Colors</h3>
 
-                {/* Color Name Input */}
-                <div className="flex flex-col items-center gap-2 mb-4">
-                  <Input
-                    placeholder="Color Name"
-                    value={currentColorData.name}
-                    onChange={(e) =>
-                      setCurrentColorData((prev) => ({
-                        ...prev,
-                        name: e.target.value,
-                      }))
-                    }
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => setColorPickerOpen(!colorPickerOpen)}
-                    className="w-full"
-                  >
-                    Pick Color
-                  </Button>
-                  {colorPickerOpen && (
-                    <ChromePicker
-                      color={currentColor}
-                      onChange={(color) => {
-                        setCurrentColor(color.hex);
-                        setCurrentColorData((prev) => ({
-                          ...prev,
-                          name: color.hex,
-                        }));
-                      }}
-                    />
-                  )}
-                </div>
-
-                {/* Color Image Upload */}
-                <ProductImageUpload
-                  imageFiles={currentColorData.images}
-                  setImageFiles={(files) =>
-                    setCurrentColorData((prev) => ({
-                      ...prev,
-                      images: files,
-                    }))
-                  }
-                  isEditMode={false}
-                  initialImages={[]}
-                  setFormData={setFormData}
-                />
-
-                <Button
-                  variant="outline"
-                  className="mt-2"
-                  onClick={handleAddColor}
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add Color
-                </Button>
-
-                {/* Display Added Colors */}
-                <div className="mt-4 space-y-2">
-                  {formData.colors?.map((color) => (
-                    <div
-                      key={color.name}
-                      className="flex items-center justify-between border p-2 rounded"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-6 h-6 rounded-full"
-                          style={{ backgroundColor: color.name }}
-                        />
-                        <span>{color.name}</span>
-                        <span>({color.images.length} images)</span>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveColor(color.name)}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
               <div className="border p-4 rounded-md">
                 <h3 className="text-lg font-semibold mb-4">Product Tags</h3>
                 <Input
@@ -546,13 +412,7 @@ function AdminProducts() {
 
               <Button
                 onClick={onSubmit}
-                disabled={
-                  !formData.name ||
-                  !formData.description ||
-                  !formData.category ||
-                  formData.inventory.length === 0 ||
-                  !imageFiles
-                }
+                disabled={!formData.name || !formData.description || !formData.category || formData.variants.length === 0}
                 className="w-full"
               >
                 {currentEditedId !== null ? "Update Product" : "Add Product"}
