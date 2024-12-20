@@ -21,23 +21,30 @@ import {
 } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/use-toast";
 import { deleteProduct, fetchAllProducts } from "@/store/admin/products-slice";
-import ProductImageUpload from "@/components/admin-view/ProductImage";
+import ImageUpload from "@/components/admin-view/image-upload";
 import { manageProduct } from "@/store/shop/products-slice";
 import { ChromePicker } from "react-color";
+import VariantCard from "@/components/admin-view/VariantCard";
+import SizeList from "@/components/admin-view/SizeList";
 
 const CATEGORIES = ["Boys", "Girls"];
+
+const SUBCATEGORIES = {
+  Boys: ["T-Shirts", "Pants", "Shoes", "Accessories"],
+  Girls: ["Dresses", "Tops", "Pants", "Accessories"],
+};
 
 const initialVariantData = {
   color: "",
   image: "",
-  sizes: []
+  sizes: [],
 };
 
 const initialSizeData = {
   size: "",
   price: "",
   salePrice: "",
-  quantity: 0
+  quantity: 0,
 };
 
 const initialFormData = {
@@ -48,24 +55,28 @@ const initialFormData = {
   brand: "",
   tags: [],
   variants: [],
-  featured: false
+  featured: false,
 };
 
 function AdminProducts() {
-  const [openCreateProductsDialog, setOpenCreateProductsDialog] = useState(false);
+  const [openCreateProductsDialog, setOpenCreateProductsDialog] =
+    useState(false);
   const [formData, setFormData] = useState(initialFormData);
   const [currentSize, setCurrentSize] = useState(initialSizeData);
   const [currentVariant, setCurrentVariant] = useState(initialVariantData);
-  const [imageFiles, setImageFiles] = useState([]);
   const [currentEditedId, setCurrentEditedId] = useState(null);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [currentColor, setCurrentColor] = useState("#000000");
+  const [imageFile, setImageFile] = useState(null);
+  const [imageLoadingState, setImageLoadingState] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
+  const [currentSubcategories, setCurrentSubcategories] = useState([]);
 
   const { productList } = useSelector((state) => state.adminProducts);
   const dispatch = useDispatch();
   const { toast } = useToast();
-
+console.log(productList)
   const handleAddTag = (e) => {
     if (e.key === "Enter" && tagInput.trim()) {
       setFormData((prev) => ({
@@ -74,6 +85,15 @@ function AdminProducts() {
       }));
       setTagInput("");
     }
+  };
+
+  const handleCategoryChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      category: value,
+      subcategory: "",
+    }));
+    setCurrentSubcategories(SUBCATEGORIES[value] || []);
   };
 
   const handleRemoveTag = (tagToRemove) => {
@@ -85,33 +105,55 @@ function AdminProducts() {
 
   const handleAddSize = () => {
     if (currentSize.size && currentSize.price && currentSize.quantity) {
-      setCurrentVariant(prev => ({
+      setCurrentVariant((prev) => ({
         ...prev,
-        sizes: [...prev.sizes, {...currentSize}]
+        sizes: [...prev.sizes, { ...currentSize }],
       }));
       setCurrentSize(initialSizeData);
     } else {
       toast({
         title: "Error",
         description: "Please fill in all size details",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
+  const handleRemoveSize = (index) => {
+    setCurrentVariant((prev) => ({
+      ...prev,
+      sizes: prev.sizes.filter((_, idx) => idx !== index),
+    }));
+  };
+
+  const handleRemoveVariant = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      variants: prev.variants.filter((_, idx) => idx !== index),
+    }));
+  };
+
   const handleAddVariant = () => {
-    if (currentVariant.color && currentVariant.image && currentVariant.sizes.length > 0) {
-      setFormData(prev => ({
+    if (
+      currentVariant.color &&
+      uploadedImageUrl &&
+      currentVariant.sizes.length > 0
+    ) {
+      setFormData((prev) => ({
         ...prev,
-        variants: [...prev.variants, {...currentVariant}]
+        variants: [
+          ...prev.variants,
+          { ...currentVariant, image: uploadedImageUrl },
+        ],
       }));
       setCurrentVariant(initialVariantData);
+      setUploadedImageUrl("");
       setColorPickerOpen(false);
     } else {
       toast({
-        title: "Error", 
+        title: "Error",
         description: "Please add color, image and at least one size",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -119,7 +161,7 @@ function AdminProducts() {
   const onSubmit = (event) => {
     event.preventDefault();
 
-    const isValid = 
+    const isValid =
       formData.name &&
       formData.description &&
       formData.category &&
@@ -128,28 +170,29 @@ function AdminProducts() {
     if (!isValid) {
       toast({
         title: "Validation Error",
-        description: "Please fill all required fields and add at least one variant",
-        variant: "destructive"
+        description:
+          "Please fill all required fields and add at least one variant",
+        variant: "destructive",
       });
       return;
     }
 
     const submitFormData = new FormData();
     submitFormData.append("data", JSON.stringify(formData));
-    
-    imageFiles.forEach(file => {
-      submitFormData.append("Images", file);
-    });
 
-    dispatch(manageProduct({
-      id: currentEditedId,
-      formData: submitFormData
-    })).then(data => {
+    dispatch(
+      manageProduct({
+        id: currentEditedId,
+        formData: submitFormData,
+      })
+    ).then((data) => {
       if (data?.payload?.success) {
         dispatch(fetchAllProducts());
         resetForm();
         toast({
-          title: `Product ${currentEditedId ? "updated" : "added"} successfully`
+          title: `Product ${
+            currentEditedId ? "updated" : "added"
+          } successfully`,
         });
       }
     });
@@ -159,7 +202,8 @@ function AdminProducts() {
     setFormData(initialFormData);
     setOpenCreateProductsDialog(false);
     setCurrentEditedId(null);
-    setImageFiles([]);
+    setImageFile(null);
+    setUploadedImageUrl("");
   }
 
   function handleDelete(getCurrentProductId) {
@@ -196,7 +240,6 @@ function AdminProducts() {
                   setCurrentEditedId={setCurrentEditedId}
                   product={productItem}
                   handleDelete={handleDelete}
-                  setImageFiles={setImageFiles}
                 />
               ))
             : null}
@@ -212,20 +255,18 @@ function AdminProducts() {
               </SheetTitle>
             </SheetHeader>
             <div className="py-6 space-y-4">
+              <Input
+                placeholder="Product Name"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                }
+                required
+              />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  placeholder="Product Name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  required
-                />
                 <Select
                   value={formData.category}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, category: value }))
-                  }
+                  onValueChange={handleCategoryChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select Category" />
@@ -234,6 +275,25 @@ function AdminProducts() {
                     {CATEGORIES.map((category) => (
                       <SelectItem key={category} value={category}>
                         {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={formData.subcategory}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, subcategory: value }))
+                  }
+                  disabled={!formData.category}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Subcategory" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currentSubcategories.map((subcat) => (
+                      <SelectItem key={subcat} value={subcat}>
+                        {subcat}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -280,108 +340,137 @@ function AdminProducts() {
                 </Label>
               </div>
 
-              <div className="border p-4 rounded-md mb-4 flex flex-col">
-                <h3 className="text-lg font-semibold mb-4">Product Variants</h3>
-                
-                <div className="flex gap-4 mb-4">
-                  <Input
-                    placeholder="Color Name" 
-                    value={currentVariant.color}
-                    onChange={e => setCurrentVariant(prev => ({
-                      ...prev,
-                      color: e.target.value
-                    }))}
-                  />
-                  <Button onClick={() => setColorPickerOpen(!colorPickerOpen)}>
-                    Pick Color
-                  </Button>
-                </div>
-              
-                {colorPickerOpen && (
-                  <ChromePicker
-                    color={currentColor}
-                    onChangeComplete={(color) => {
-                      setCurrentColor(color.hex);
-                      setCurrentVariant((prev) => ({
-                        ...prev,
-                        color: color.hex,
-                      }));
-                    }}
-                  />
-                )}
-              
-                <ProductImageUpload
-                  currentImage={currentVariant.image}
-                  setCurrentImage={(file) => setCurrentVariant(prev => ({
-                    ...prev, 
-                    image: file
-                  }))}
-                />
-              
-                <div className="grid grid-cols-4 gap-2">
-                  <Input 
-                    placeholder="Size"
-                    value={currentSize.size}
-                    onChange={e => setCurrentSize(prev => ({
-                      ...prev,
-                      size: e.target.value
-                    }))}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Price"
-                    value={currentSize.price}
-                    onChange={e => setCurrentSize(prev => ({
-                      ...prev,
-                      price: e.target.value
-                    }))}
-                  />
-                  <Input
-                    type="number" 
-                    placeholder="Sale Price"
-                    value={currentSize.salePrice}
-                    onChange={e => setCurrentSize(prev => ({
-                      ...prev,
-                      salePrice: e.target.value
-                    }))}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Quantity"
-                    value={currentSize.quantity} 
-                    onChange={e => setCurrentSize(prev => ({
-                      ...prev,
-                      quantity: parseInt(e.target.value)
-                    }))}
-                  />
-                </div>
-              
-                <Button onClick={handleAddSize}>Add Size</Button>
-                <Button onClick={handleAddVariant}>Add Variant</Button>
-              
-                {formData.variants.map((variant, idx) => (
-                  <div key={idx} className="border p-2 mt-2">
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-6 h-6 rounded-full"
-                        style={{backgroundColor: variant.color}}
+              {/* Variant Section */}
+              <div className="border p-4 rounded-lg bg-gray-50">
+                <h3 className="text-lg font-semibold mb-4">Add New Variant</h3>
+
+                <div className="space-y-4">
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <Input
+                        placeholder="Color Name"
+                        value={currentVariant.color}
+                        onChange={(e) =>
+                          setCurrentVariant((prev) => ({
+                            ...prev,
+                            color: e.target.value,
+                          }))
+                        }
                       />
-                      <span>{variant.color}</span>
                     </div>
-                    
-                    <div className="mt-2">
-                      {variant.sizes.map((size, sizeIdx) => (
-                        <div key={sizeIdx}>
-                          Size: {size.size} - Price: ৳{size.price}
-                          {size.salePrice && ` - Sale: ৳${size.salePrice}`}
-                          - Qty: {size.quantity}
-                        </div>
-                      ))}
-                    </div>
+                    <Button
+                      onClick={() => setColorPickerOpen(!colorPickerOpen)}
+                    >
+                      {colorPickerOpen ? "Close" : "Pick Color"}
+                    </Button>
                   </div>
-                ))}
+
+                  {colorPickerOpen && (
+                    <div className="p-4 border rounded-md bg-white">
+                      <ChromePicker
+                        color={currentColor}
+                        onChangeComplete={(color) => {
+                          setCurrentColor(color.hex);
+                          setCurrentVariant((prev) => ({
+                            ...prev,
+                            color: color.hex,
+                          }));
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  <ImageUpload
+                    imageFile={imageFile}
+                    setImageFile={setImageFile}
+                    imageLoadingState={imageLoadingState}
+                    uploadedImageUrl={uploadedImageUrl}
+                    setUploadedImageUrl={setUploadedImageUrl}
+                    setImageLoadingState={setImageLoadingState}
+                    isEditMode={false}
+                  />
+
+                  <div className="grid grid-cols-4 gap-2">
+                    <Input
+                      placeholder="Size"
+                      value={currentSize.size}
+                      onChange={(e) =>
+                        setCurrentSize((prev) => ({
+                          ...prev,
+                          size: e.target.value,
+                        }))
+                      }
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Price"
+                      value={currentSize.price}
+                      onChange={(e) =>
+                        setCurrentSize((prev) => ({
+                          ...prev,
+                          price: e.target.value,
+                        }))
+                      }
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Sale Price"
+                      value={currentSize.salePrice}
+                      onChange={(e) =>
+                        setCurrentSize((prev) => ({
+                          ...prev,
+                          salePrice: e.target.value,
+                        }))
+                      }
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Quantity"
+                      value={currentSize.quantity}
+                      onChange={(e) =>
+                        setCurrentSize((prev) => ({
+                          ...prev,
+                          quantity: parseInt(e.target.value || 0),
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <Button onClick={handleAddSize} className="w-full">
+                    Add Size
+                  </Button>
+
+                  <SizeList
+                    sizes={currentVariant.sizes}
+                    onRemoveSize={handleRemoveSize}
+                  />
+
+                  {currentVariant.sizes.length > 0 && (
+                    <Button onClick={handleAddVariant} className="w-full">
+                      Add Variant
+                    </Button>
+                  )}
+                </div>
               </div>
 
+              {/* Variants List */}
+              {formData.variants.length > 0 && (
+                <div className="border p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-4">
+                    Product Variants
+                  </h3>
+                  <div className="grid gap-4">
+                    {formData.variants.map((variant, idx) => (
+                      <VariantCard
+                        key={idx}
+                        variant={variant}
+                        index={idx}
+                        onRemoveVariant={handleRemoveVariant}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="border p-4 rounded-md">
                 <h3 className="text-lg font-semibold mb-4">Product Tags</h3>
                 <Input
@@ -412,7 +501,12 @@ function AdminProducts() {
 
               <Button
                 onClick={onSubmit}
-                disabled={!formData.name || !formData.description || !formData.category || formData.variants.length === 0}
+                disabled={
+                  !formData.name ||
+                  !formData.description ||
+                  !formData.category ||
+                  formData.variants.length === 0
+                }
                 className="w-full"
               >
                 {currentEditedId !== null ? "Update Product" : "Add Product"}

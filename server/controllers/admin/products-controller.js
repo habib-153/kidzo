@@ -23,18 +23,21 @@ const handleImageUpload = async (req, res) => {
 //add a new product
 const addProduct = async (req, res) => {
   try {
-    const payload = JSON.parse(req.body.data);
+    if (!req.body) {
+      return res.status(400).json({
+        success: false,
+        message: "Product data is required"
+      });
+    }
+
+    const payload = req.body
     
-    // Handle variant images
-    if (req.files) {
-      payload.variants = await Promise.all(payload.variants.map(async (variant, index) => {
-        const image = req.files[`variantImage_${index}`][0];
-        const uploadedImage = await imageUploadUtil(image.path);
-        return {
-          ...variant,
-          image: uploadedImage.secure_url
-        };
-      }));
+    // Validate required fields
+    if (!payload.name || !payload.description || !payload.category || !payload.variants?.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields"
+      });
     }
 
     const newProduct = new Product(payload);
@@ -45,13 +48,14 @@ const addProduct = async (req, res) => {
       data: newProduct
     });
   } catch (error) {
+    console.error('Add product error:', error);
     res.status(500).json({
       success: false,
-      message: "Error occurred while adding product"
+      message: "Error occurred while adding product",
+      error: error.message
     });
   }
 };
-
 //fetch all products
 const fetchAllProducts = async (req, res) => {
   try {

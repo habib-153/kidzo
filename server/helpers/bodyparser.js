@@ -4,7 +4,6 @@ const parseBody = async (req, res, next) => {
     return;
   }
   req.body = JSON.parse(req.body.data);
-
   next();
 };
 

@@ -15,7 +15,7 @@ const { parseBody } = require("../../helpers/bodyparser");
 const router = express.Router();
 
 router.post("/upload-image", upload.single("my_file"), handleImageUpload);
-router.post("/add", multerUpload.fields([{name: 'Images'}]), parseBody, addProduct);
+router.post("/add", multerUpload.none(), parseBody, addProduct);
 router.put("/edit/:id", multerUpload.fields([{ name: 'Images' }]), parseBody, editProduct);
 router.delete("/delete/:id", deleteProduct);
 router.get("/get", fetchAllProducts);
