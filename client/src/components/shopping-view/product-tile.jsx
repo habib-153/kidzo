@@ -6,17 +6,8 @@ import { Eye, Star } from "lucide-react";
 // import { Helmet } from "react-helmet-async";
 
 const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
-  // Get price range from variants
-  const getPriceRange = () => {
-    const prices = product.variants.flatMap(v => 
-      v.sizes.map(s => s.salePrice || s.price)
-    );
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    return { min, max };
-  };
-
-  const { min, max } = getPriceRange();
+  const firstVariant = product?.variants[0];
+  const firstSize = firstVariant?.sizes[0];
   const isOutOfStock = product.totalStock === 0;
   const hasLowStock = product.totalStock < 10;
 
@@ -97,9 +88,21 @@ const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
           </p>
 
           <div className="flex justify-between items-center">
-            <div className="text-lg font-bold text-rose-300">
-              ৳{min}
-              {min !== max && <span className="text-sm text-neutral-400"> - ৳{max}</span>}
+            <div className="flex items-baseline gap-2">
+              {firstSize?.salePrice ? (
+                <>
+                  <span className="text-lg font-bold text-rose-300">
+                    ৳{firstSize.salePrice}
+                  </span>
+                  <span className="text-sm text-neutral-400 line-through">
+                    ৳{firstSize.price}
+                  </span>
+                </>
+              ) : (
+                <span className="text-lg font-bold text-rose-300">
+                  ৳{firstSize?.price}
+                </span>
+              )}
             </div>
             <span className="text-sm text-neutral-500">
               Stock: {product.totalStock}

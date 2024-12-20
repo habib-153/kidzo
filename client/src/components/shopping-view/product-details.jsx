@@ -34,6 +34,7 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
   const [showSizeChart, setShowSizeChart] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedVariant, setSelectedVariant] = useState(null);
 
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
@@ -41,13 +42,23 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
   const { reviews } = useSelector((state) => state.shopReview);
   const { toast } = useToast();
 
+  // useEffect(() => {
+  //   if (productDetails?._id) {
+  //     dispatch(getReviews(productDetails._id));
+  //     setSelectedImage(0);
+  //     setQuantity(1);
+  //   }
+  // }, [productDetails, dispatch]);
   useEffect(() => {
-    if (productDetails?._id) {
-      dispatch(getReviews(productDetails._id));
+    if (productDetails?.variants?.length > 0) {
+      setSelectedVariant(productDetails.variants[0]);
       setSelectedImage(0);
+      setSelectedSize(null);
       setQuantity(1);
     }
-  }, [productDetails, dispatch]);
+  }, [productDetails]);
+
+  const availableSizes = selectedVariant?.sizes || [];
 
   const handleAddToCart = () => {
     if (!selectedSize) {
@@ -142,29 +153,35 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
         <div className="grid md:grid-cols-2 gap-8">
           {/* Image Gallery */}
           <div className="relative group p-4">
+            {/* Main Image */}
             <div className="aspect-square overflow-hidden rounded-lg mb-4">
               <img
-                src={productDetails?.images[selectedImage]}
+                src={selectedVariant?.image}
                 alt={productDetails?.name}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {/* check this line, the code is not working here */}
-              {productDetails?.images?.map((img, index) => (
+
+            {/* Color Selection */}
+            <div className="flex gap-2 mb-4">
+              {productDetails?.variants.map((variant, idx) => (
                 <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all ${
-                    selectedImage === index
-                      ? "border-rose-200"
-                      : "border-transparent hover:border-rose-100"
+                  key={idx}
+                  onClick={() => {
+                    setSelectedVariant(variant);
+                    setSelectedSize(null);
+                    setQuantity(1);
+                  }}
+                  className={`w-10 h-10 rounded-full border-2 transition-all ${
+                    selectedVariant?.color === variant.color
+                      ? 'border-rose-300 scale-110'
+                      : 'border-transparent hover:border-rose-200'
                   }`}
                 >
-                  <img
-                    src={img}
-                    alt={`${productDetails?.name} ${index + 1}`}
-                    className="w-full h-full object-cover"
+                  <span
+                    className="block w-full h-full rounded-full"
+                    style={{ backgroundColor: variant.color }}
+                    title={variant.color}
                   />
                 </button>
               ))}
@@ -209,66 +226,65 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
                 </span>
               </div>
 
-              {/* Price Display */}
-              <div className="flex items-baseline gap-3 mb-6">
-                {selectedSize &&
-                  productDetails?.sale_price?.[selectedSize] <
-                    productDetails?.price?.[selectedSize] && (
+              {/* Size Selection */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-sm font-medium text-neutral-700">
+                  Select Size
+                </Label>
+                <Button
+                  variant="ghost"
+                  className="text-rose-300 hover:text-rose-400 flex items-center gap-1"
+                  onClick={() => setShowSizeChart(!showSizeChart)}
+                >
+                  <Ruler className="w-4 h-4" />
+                  Size Guide
+                </Button>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {availableSizes.map((sizeOption) => {
+                  const isAvailable = sizeOption.quantity > 0;
+
+                  return (
+                    <Button
+                      key={sizeOption.size}
+                      variant={selectedSize === sizeOption.size ? "default" : "outline"}
+                      className={`px-6 ${
+                        selectedSize === sizeOption.size
+                          ? "bg-rose-200 text-neutral-700 hover:bg-rose-300"
+                          : isAvailable
+                          ? "text-neutral-600 hover:text-neutral-700"
+                          : "text-neutral-400 cursor-not-allowed"
+                      }`}
+                      onClick={() => isAvailable && setSelectedSize(sizeOption.size)}
+                      disabled={!isAvailable}
+                    >
+                      {sizeOption.size}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Price Display */}
+            <div className="flex items-baseline gap-3 mb-6">
+              {selectedSize && (
+                <>
+                  {selectedVariant?.sizes.find(s => s.size === selectedSize)?.salePrice && (
                     <span className="text-2xl text-neutral-400 line-through">
-                      ৳{productDetails?.sale_price?.[selectedSize]}
+                      ৳{selectedVariant.sizes.find(s => s.size === selectedSize).price}
                     </span>
                   )}
-                <span className="text-3xl font-bold text-rose-300">
-                  ৳
-                  {selectedSize
-                    ? productDetails?.sale_price?.[selectedSize] ||
-                      productDetails?.price?.[selectedSize]
-                    : "Select size"}
-                </span>
-              </div>
-
-              {/* Size Selection */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <Label className="text-sm font-medium text-neutral-700">
-                    Select Size
-                  </Label>
-                  <Button
-                    variant="ghost"
-                    className="text-rose-300 hover:text-rose-400 flex items-center gap-1"
-                    onClick={() => setShowSizeChart(!showSizeChart)}
-                  >
-                    <Ruler className="w-4 h-4" />
-                    Size Guide
-                  </Button>
-                </div>
-                <div className="flex gap-2 flex-wrap">
-                  {Object.keys(productDetails?.price || {}).map((size) => {
-                    const inventory = productDetails.inventory.find(
-                      (item) => item.size === size
-                    );
-                    const isAvailable = inventory && inventory.inStock;
-
-                    return (
-                      <Button
-                        key={size}
-                        variant={selectedSize === size ? "default" : "outline"}
-                        className={`px-6 ${
-                          selectedSize === size
-                            ? "bg-rose-200 text-neutral-700 hover:bg-rose-300"
-                            : isAvailable
-                            ? "text-neutral-600 hover:text-neutral-700"
-                            : "text-neutral-400 cursor-not-allowed"
-                        }`}
-                        onClick={() => isAvailable && setSelectedSize(size)}
-                        disabled={!isAvailable}
-                      >
-                        {size}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
+                  <span className="text-3xl font-bold text-rose-300">
+                    ৳
+                    {selectedSize
+                      ? selectedVariant?.sizes.find(s => s.size === selectedSize)?.salePrice || 
+                        selectedVariant?.sizes.find(s => s.size === selectedSize)?.price
+                      : "Select size"}
+                  </span>
+                </>
+              )}
+            </div>
 
               {/* Size Chart */}
               {showSizeChart && (
@@ -305,54 +321,41 @@ const ProductDetailsDialog = ({ open, setOpen, productDetails }) => {
                   </Table>
                 </div>
               )}
-              <div>
-                {productDetails?.colors?.map((color, index) => (
-                  <div key={index}>
-                    <h3>{color?.name}</h3>
-                    {color?.images?.map((image, imgIndex) => (
-                      <img
-                        key={imgIndex}
-                        src={image}
-                        alt={`${color?.name} color`}
-                      />
-                    ))}
-                  </div>
-                ))}
+              {/* Update quantity logic */}
+            <div className="mb-6">
+              <Label className="text-sm font-medium text-neutral-700 mb-2 block">
+                Quantity
+              </Label>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="text-neutral-600"
+                  disabled={!selectedSize}
+                >
+                  -
+                </Button>
+                <span className="w-12 text-center">{quantity}</span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    const maxQty = selectedVariant?.sizes.find(
+                      s => s.size === selectedSize
+                    )?.quantity || 0;
+                    setQuantity(Math.min(quantity + 1, maxQty));
+                  }}
+                  className="text-neutral-600"
+                  disabled={!selectedSize || quantity >= (selectedVariant?.sizes.find(
+                    s => s.size === selectedSize
+                  )?.quantity || 0)}
+                >
+                  +
+                </Button>
               </div>
-              {/* Quantity Selection */}
-              <div className="mb-6">
-                <Label className="text-sm font-medium text-neutral-700 mb-2 block">
-                  Quantity
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="text-neutral-600"
-                  >
-                    -
-                  </Button>
-                  <span className="w-12 text-center">{quantity}</span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() =>
-                      setQuantity(Math.min(quantity + 1, maxQuantity))
-                    }
-                    className="text-neutral-600"
-                    disabled={quantity >= maxQuantity}
-                  >
-                    +
-                  </Button>
-                </div>
-                {selectedSize && quantity >= maxQuantity && (
-                  <p className="text-sm text-red-500 mt-1">
-                    Maximum quantity reached
-                  </p>
-                )}
-              </div>
-
+            </div>
+            
               {/* Add to Cart Button */}
               <Button
                 className="w-full bg-rose-200 hover:bg-rose-300 text-neutral-700 mb-8"
