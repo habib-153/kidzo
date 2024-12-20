@@ -1,7 +1,11 @@
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { addFeatureImage, getFeatureImages, deleteFeatureImage } from "@/store/common-slice";
+import {
+  addFeatureImage,
+  getFeatureImages,
+  deleteFeatureImage,
+} from "@/store/common-slice";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useToast } from "@/components/ui/use-toast";
@@ -11,8 +15,9 @@ function AdminDashboard() {
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const dispatch = useDispatch();
-  const { featureImageList } = useSelector((state) => state.commonFeature);
   const [currentEditedId, setCurrentEditedId] = useState(null);
+
+  const { featureImageList } = useSelector((state) => state.commonFeature);
   const { toast } = useToast();
 
   function handleUploadFeatureImage() {
