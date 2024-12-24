@@ -1,17 +1,18 @@
 import { Button } from "@/components/ui/button";
 import {
-  Airplay,
+  // Airplay,
   // BabyIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  CloudLightning,
-  Heater,
-  Images,
-  Shirt,
   ShirtIcon,
-  ShoppingBasket,
+  // CloudLightning,
+  // Heater,
+  // Images,
+  // Shirt,
+  // ShirtIcon,
+  // ShoppingBasket,
   UmbrellaIcon,
-  WashingMachine,
+  // WashingMachine,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -28,19 +29,20 @@ import { getFeatureImages } from "@/store/common-slice";
 import Footer from "@/components/shopping-view/footer";
 
 const categoriesWithIcon = [
-  { id: "boys", label: "Boys", icon: ShirtIcon },
-  { id: "girls", label: "Girls", icon: CloudLightning },
+  // { id: "boys", label: "Boys", icon: ShirtIcon },
+  // { id: "girls", label: "Girls", icon: CloudLightning },
+  { id: "clothing", label: "Clothing", icon: ShirtIcon },
   { id: "footwear", label: "Footwear", icon: UmbrellaIcon },
 ];
 
-const brandsWithIcon = [
-  { id: "nike", label: "Nike", icon: Shirt },
-  { id: "adidas", label: "Adidas", icon: WashingMachine },
-  { id: "puma", label: "Puma", icon: ShoppingBasket },
-  { id: "levi", label: "Levi's", icon: Airplay },
-  { id: "zara", label: "Zara", icon: Images },
-  { id: "h&m", label: "H&M", icon: Heater },
-];
+// const brandsWithIcon = [
+//   { id: "nike", label: "Nike", icon: Shirt },
+//   { id: "adidas", label: "Adidas", icon: WashingMachine },
+//   { id: "puma", label: "Puma", icon: ShoppingBasket },
+//   { id: "levi", label: "Levi's", icon: Airplay },
+//   { id: "zara", label: "Zara", icon: Images },
+//   { id: "h&m", label: "H&M", icon: Heater },
+// ];
 
 function ShoppingHome() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -60,11 +62,12 @@ function ShoppingHome() {
     : [];
 
   // Filter top product
-  const topProducts = topSellingProducts?.map(item => ({
-    ...item.product,
-    totalQuantitySold: item.totalQuantitySold,
-    totalRevenue: item.totalRevenue
-  })) || [];
+  const topProducts =
+    topSellingProducts?.map((item) => ({
+      ...item.product,
+      totalQuantitySold: item.totalQuantitySold,
+      totalRevenue: item.totalRevenue,
+    })) || [];
 
   function handleNavigateToListingPage(getCurrentItem, section) {
     sessionStorage.removeItem("filters");
@@ -157,7 +160,7 @@ function ShoppingHome() {
           <h2 className="text-3xl font-bold text-center mb-8">
             Shop by category
           </h2>
-          <div className="grid text-center mx-auto grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid text-center mx-auto grid-cols-1 md:grid-cols-2 gap-4">
             {categoriesWithIcon.map((categoryItem, i) => (
               <Card
                 key={i}
@@ -203,13 +206,16 @@ function ShoppingHome() {
           </h2>
           {featuredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {featuredProducts.map((productItem, idx) => (
-                <ShoppingProductTile
-                  key={idx}
-                  handleGetProductDetails={handleGetProductDetails}
-                  product={productItem}
-                />
-              ))}
+              {featuredProducts?.map(
+                (productItem, idx) =>
+                  productItem && (
+                    <ShoppingProductTile
+                      key={idx}
+                      handleGetProductDetails={handleGetProductDetails}
+                      product={productItem}
+                    />
+                  )
+              )}
             </div>
           ) : (
             <p className="text-center text-gray-500">
@@ -223,13 +229,16 @@ function ShoppingHome() {
           </h2>
           {topProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {topProducts.map((productItem, idx) => (
-                <ShoppingProductTile
-                  key={idx}
-                  handleGetProductDetails={handleGetProductDetails}
-                  product={productItem}
-                />
-              ))}
+              {topProducts?.map(
+                (productItem, idx) =>
+                  productItem && (
+                    <ShoppingProductTile
+                      key={idx}
+                      handleGetProductDetails={handleGetProductDetails}
+                      product={productItem}
+                    />
+                  )
+              )}
             </div>
           ) : (
             <p className="text-center text-gray-500">

@@ -3,26 +3,29 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Star } from "lucide-react";
-// import { Helmet } from "react-helmet-async";
 
 const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
-  const firstVariant = product?.variants[0];
-  const firstSize = firstVariant?.sizes[0];
+  if (!product) return null;
+
+  const variants = product.variants || [];
+  const firstVariant = variants[0] || {};
+  const firstSize = firstVariant.sizes?.[0] || {};
   const isOutOfStock = product.totalStock === 0;
   const hasLowStock = product.totalStock < 10;
 
   return (
     <Card className="group w-full max-w-sm mx-auto overflow-hidden transition-all duration-300 hover:shadow-lg bg-white/95">
-      <div onClick={() => handleGetProductDetails(product?._id)} className="cursor-pointer">
-        {/* Image Section */}
+      <div
+        onClick={() => handleGetProductDetails(product._id)}
+        className="cursor-pointer"
+      >
         <div className="relative overflow-hidden">
           <img
-            src={product.variants[0]?.image}
+            src={firstVariant.image}
             alt={product.name}
             className="w-full h-[300px] object-cover transition-transform duration-300 group-hover:scale-105"
           />
-          
-          {/* Status Badges */}
+
           <div className="absolute top-3 left-3 flex flex-col gap-2">
             {product.featured && (
               <Badge className="bg-yellow-500/90 hover:bg-yellow-600">
@@ -40,9 +43,8 @@ const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
             ) : null}
           </div>
 
-          {/* Color Variants */}
           <div className="absolute bottom-3 right-3 flex gap-1 bg-white/80 p-2 rounded-full">
-            {product.variants.map((variant, idx) => (
+            {variants.map((variant, idx) => (
               <div
                 key={idx}
                 className="w-4 h-4 rounded-full border border-white shadow-sm transition-transform hover:scale-125"
@@ -53,7 +55,6 @@ const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
           </div>
         </div>
 
-        {/* Content Section */}
         <CardContent className="p-6">
           <div className="flex justify-between items-start mb-2">
             <h2 className="text-xl font-bold text-neutral-800 group-hover:text-rose-300 transition-colors line-clamp-2">
@@ -62,7 +63,9 @@ const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
             {product.averageReview > 0 && (
               <div className="flex items-center gap-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span className="text-sm font-medium">{product.averageReview.toFixed(1)}</span>
+                <span className="text-sm font-medium">
+                  {product.averageReview.toFixed(1)}
+                </span>
               </div>
             )}
           </div>
@@ -89,7 +92,7 @@ const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
 
           <div className="flex justify-between items-center">
             <div className="flex items-baseline gap-2">
-              {firstSize?.salePrice ? (
+              {firstSize.salePrice ? (
                 <>
                   <span className="text-lg font-bold text-rose-300">
                     ৳{firstSize.salePrice}
@@ -100,7 +103,7 @@ const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
                 </>
               ) : (
                 <span className="text-lg font-bold text-rose-300">
-                  ৳{firstSize?.price}
+                  ৳{firstSize.price}
                 </span>
               )}
             </div>
@@ -113,7 +116,7 @@ const ShoppingProductTile = ({ product, handleGetProductDetails }) => {
 
       <CardFooter className="p-4 bg-neutral-50">
         <Button
-          onClick={() => handleGetProductDetails(product?._id)}
+          onClick={() => handleGetProductDetails(product._id)}
           className="w-full bg-rose-200 hover:bg-rose-300 text-neutral-700 flex items-center justify-center gap-2"
         >
           <Eye className="w-4 h-4" />
