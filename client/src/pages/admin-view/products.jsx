@@ -27,11 +27,11 @@ import { ChromePicker } from "react-color";
 import VariantCard from "@/components/admin-view/VariantCard";
 import SizeList from "@/components/admin-view/SizeList";
 
-const CATEGORIES = ["Boys", "Girls"];
+const CATEGORIES = ["Clothing", "Shoes"];
 
 const SUBCATEGORIES = {
-  Boys: ["T-Shirts", "Pants", "Shoes", "Accessories"],
-  Girls: ["Dresses", "Tops", "Pants", "Accessories"],
+  Clothing: ["Boys", "Girls", "Winter Collection", "Summer Collection"],
+  Shoes: ["Boys", "Girls", "Winter Collection", "Summer Collection"],
 };
 
 const initialVariantData = {
@@ -76,7 +76,7 @@ function AdminProducts() {
   const { productList } = useSelector((state) => state.adminProducts);
   const dispatch = useDispatch();
   const { toast } = useToast();
-console.log(productList)
+  console.log(productList);
   const handleAddTag = (e) => {
     if (e.key === "Enter" && tagInput.trim()) {
       setFormData((prev) => ({
@@ -291,9 +291,9 @@ console.log(productList)
                     <SelectValue placeholder="Select Subcategory" />
                   </SelectTrigger>
                   <SelectContent>
-                    {currentSubcategories.map((subcat) => (
-                      <SelectItem key={subcat} value={subcat}>
-                        {subcat}
+                    {currentSubcategories.map((subcategory) => (
+                      <SelectItem key={subcategory} value={subcategory}>
+                        {subcategory}
                       </SelectItem>
                     ))}
                   </SelectContent>
