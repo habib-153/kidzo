@@ -35,7 +35,6 @@ function UserCartItemsContent({ cartItem }) {
     dispatch(deleteCartItem(item));
     toast({ title: "Item removed from cart" });
   }
-  console.log(cartItem);
 
   return (
     <div className="flex items-start gap-4 p-4 border-b border-gray-200">
@@ -48,44 +47,46 @@ function UserCartItemsContent({ cartItem }) {
       </div>
       <div className="flex-1">
         <h3 className="font-extrabold">{cartItem?.name}</h3>
-        <div className="text-sm text-neutral-600 mb-2 flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <span>Color:</span>
-            <span
-              className="inline-block w-4 h-4 rounded-full border"
-              style={{ backgroundColor: cartItem?.color }}
-            />
+        <div className="flex gap-2">
+          <div className="text-sm text-neutral-600 mb-2 flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span>Color:</span>
+              <span
+                className="inline-block w-4 h-4 rounded-full border"
+                style={{ backgroundColor: cartItem?.color }}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span>Size:</span>
+              <span className="font-medium">{cartItem?.size}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>Price:</span>
+              <span className="font-medium">৳{cartItem?.price}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span>Size:</span>
-            <span className="font-medium">{cartItem?.size}</span>
+          <div className="flex items-center gap-2 mt-1">
+            <Button
+              variant="outline"
+              className="h-8 w-8 rounded-full"
+              size="icon"
+              disabled={cartItem.quantity === 1}
+              onClick={() => handleUpdateQuantity(cartItem, "minus")}
+            >
+              <Minus className="w-4 h-4" />
+              <span className="sr-only">Decrease</span>
+            </Button>
+            <span className="font-semibold">{cartItem.quantity}</span>
+            <Button
+              variant="outline"
+              className="h-8 w-8 rounded-full"
+              size="icon"
+              onClick={() => handleUpdateQuantity(cartItem, "plus")}
+            >
+              <Plus className="w-4 h-4" />
+              <span className="sr-only">Increase</span>
+            </Button>
           </div>
-          <div className="flex items-center gap-2">
-            <span>Price:</span>
-            <span className="font-medium">৳{cartItem?.price}</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 mt-1">
-          <Button
-            variant="outline"
-            className="h-8 w-8 rounded-full"
-            size="icon"
-            disabled={cartItem.quantity === 1}
-            onClick={() => handleUpdateQuantity(cartItem, "minus")}
-          >
-            <Minus className="w-4 h-4" />
-            <span className="sr-only">Decrease</span>
-          </Button>
-          <span className="font-semibold">{cartItem.quantity}</span>
-          <Button
-            variant="outline"
-            className="h-8 w-8 rounded-full"
-            size="icon"
-            onClick={() => handleUpdateQuantity(cartItem, "plus")}
-          >
-            <Plus className="w-4 h-4" />
-            <span className="sr-only">Increase</span>
-          </Button>
         </div>
       </div>
       <div className="flex flex-col items-end">
@@ -99,7 +100,6 @@ function UserCartItemsContent({ cartItem }) {
           onClick={() => handleDeleteItem(cartItem)}
         >
           <Trash className="w-4 h-4 mr-1" />
-          Remove
         </Button>
       </div>
     </div>

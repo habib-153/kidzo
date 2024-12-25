@@ -19,11 +19,8 @@ const initialFormData = {
 
 function AdminOrderDetailsView({ orderDetails }) {
   const [formData, setFormData] = useState(initialFormData);
-  //const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const { toast } = useToast();
-
-  // console.log(orderDetails, "orderDetailsorderDetails");
 
   function handleUpdateStatus(event) {
     event.preventDefault();
@@ -39,6 +36,11 @@ function AdminOrderDetailsView({ orderDetails }) {
         toast({
           title: data?.payload?.message,
         });
+      } else {
+        toast({
+          title: "Failed to update status",
+          variant: "destructive",
+        });
       }
     });
   }
@@ -50,8 +52,9 @@ function AdminOrderDetailsView({ orderDetails }) {
         <DialogDescription>Details of the selected order</DialogDescription>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8 p-8 max-h-[70vh]">
-        {/* Order Info */}
+      {/* Overall Layout */}
+      <div className="grid md:grid-cols-2 gap-8 p-8 max-h-[70vh] overflow-y-auto">
+        {/* Order Info & Status */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <p className="font-medium">Order ID</p>
@@ -59,17 +62,29 @@ function AdminOrderDetailsView({ orderDetails }) {
           </div>
           <div className="flex items-center justify-between">
             <p className="font-medium">Order Date</p>
-            <Label>{new Date(orderDetails?.orderDate).toLocaleDateString()}</Label>
+            <Label>
+              {orderDetails?.orderDate
+                ? new Date(orderDetails.orderDate).toLocaleDateString()
+                : ""}
+            </Label>
           </div>
           <div className="flex items-center justify-between">
             <p className="font-medium">Order Status</p>
             <Label>
               <Badge
                 className={`py-1 px-3 ${
-                  orderDetails?.orderStatus === "confirmed"
+                  orderDetails?.orderStatus === "pending"
+                    ? "bg-yellow-500"
+                    : orderDetails?.orderStatus === "inProcess"
+                    ? "bg-blue-500"
+                    : orderDetails?.orderStatus === "inShipping"
+                    ? "bg-purple-500"
+                    : orderDetails?.orderStatus === "delivered"
                     ? "bg-green-500"
                     : orderDetails?.orderStatus === "rejected"
                     ? "bg-red-600"
+                    : orderDetails?.orderStatus === "cancelled"
+                    ? "bg-orange-500"
                     : "bg-black"
                 }`}
               >
@@ -77,109 +92,98 @@ function AdminOrderDetailsView({ orderDetails }) {
               </Badge>
             </Label>
           </div>
-        </div>
-        <Separator />
-        <div className="grid gap-4">
-          <div className="grid gap-2">
-            <div className="font-medium">Order Details</div>
-            <ul className="grid gap-3">
-              {orderDetails?.cartItems && orderDetails?.cartItems.length > 0
-                ? orderDetails?.cartItems.map((item, i) => (
-                    <li key={i} className="flex items-center justify-between">
-                      <span>Title: {item.title}</span>
-                      <span>Quantity: {item.quantity}</span>
-                      <span>Price: ${item.price}</span>
-                    </li>
-                  ))
-                : null}
-            </ul>
-          </div>
           <div className="flex items-center justify-between">
             <p className="font-medium">Payment Status</p>
             <Label>{orderDetails?.paymentStatus}</Label>
           </div>
           <div className="flex items-center justify-between">
             <p className="font-medium">Total Amount</p>
-            <Label>৳{orderDetails?.totalAmount.toFixed(2)}</Label>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="font-medium">Payment Status</p>
-            <Label>{orderDetails?.paymentStatus}</Label>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="font-medium">Total Amount</p>
-            <Label>৳{orderDetails?.totalAmount.toFixed(2)}</Label>
+            <Label>৳{orderDetails?.totalAmount?.toFixed(2)}</Label>
           </div>
         </div>
 
         {/* Shipping Info */}
         <div className="space-y-4">
-          <div className="font-medium">Shipping Info</div>
+          <p className="font-medium">Shipping Info</p>
           <div className="grid gap-0.5 text-muted-foreground">
-            <span>{orderDetails?.addressInfo?.address}</span>
-            <span>{orderDetails?.addressInfo?.city}</span>
-            <span>{orderDetails?.addressInfo?.Name}</span>
-            <span>{orderDetails?.addressInfo?.phone}</span>
-            <span>{orderDetails?.addressInfo?.notes}</span>
+            <span> Address : {orderDetails?.addressInfo?.address}</span>
+            <span>City : {orderDetails?.addressInfo?.city}</span>
+            <span> Name : {orderDetails?.addressInfo?.Name}</span>
+            <span>Phone : {orderDetails?.addressInfo?.phone}</span>
+            <span>Notes :{orderDetails?.addressInfo?.notes}</span>
           </div>
         </div>
       </div>
 
       <Separator />
 
-      {/* Order Items */}
+      {/* Order Items & Update Form */}
       <div className="p-8 space-y-4">
         <div className="font-medium">Order Items</div>
         <ul className="grid gap-3">
-          {orderDetails?.cartItems?.map((item) => (
-            <li
-              key={item.productId + item.size}
-              className="flex items-center justify-between"
-            >
-              <div className="flex items-center gap-4">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-16 h-16 object-cover rounded"
-                />
-                <div>
-                  <h3 className="font-bold">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Size: {item.size}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Quantity: {item.quantity}
-                  </p>
+          {Array.isArray(orderDetails?.cartItems) &&
+          orderDetails.cartItems.length > 0 ? (
+            orderDetails.cartItems.map((item, i) => (
+              <li
+                key={`${item.productId}-${item.size}-${i}`}
+                className="flex items-center justify-between bg-neutral-50 p-3 rounded"
+              >
+                <div className="flex items-center gap-4">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                  <div>
+                    <h3 className="font-bold">{item.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Size: {item.size}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Quantity: {item.quantity}
+                    </p>
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      Color:
+                      <span
+                        style={{ backgroundColor: item.color }}
+                        className="inline-block w-4 h-4 rounded-full border"
+                      />
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <p className="font-bold">
-                ৳{(item.price * item.quantity).toFixed(2)}
-              </p>
-            </li>
-          ))}
+                <p className="font-bold">
+                  ৳{(item.price * item.quantity).toFixed(2)}
+                </p>
+              </li>
+            ))
+          ) : (
+            <p className="text-neutral-500 italic">No items in this order</p>
+          )}
         </ul>
-        <div>
-          <CommonForm
-            formControls={[
-              {
-                label: "Order Status",
-                name: "status",
-                componentType: "select",
-                options: [
-                  { id: "pending", label: "Pending" },
-                  { id: "inProcess", label: "In Process" },
-                  { id: "inShipping", label: "In Shipping" },
-                  { id: "delivered", label: "Delivered" },
-                  { id: "rejected", label: "Rejected" },
-                ],
-              },
-            ]}
-            formData={formData}
-            setFormData={setFormData}
-            buttonText={"Update Order Status"}
-            onSubmit={handleUpdateStatus}
-          />
-        </div>
+
+        <Separator />
+
+        <CommonForm
+          formControls={[
+            {
+              label: "Order Status",
+              name: "status",
+              componentType: "select",
+              options: [
+                { id: "pending", label: "Pending" },
+                { id: "inProcess", label: "In Process" },
+                { id: "inShipping", label: "In Shipping" },
+                { id: "delivered", label: "Delivered" },
+                { id: "rejected", label: "Rejected" },
+                { id: "cancelled", label: "Cancelled" },
+              ],
+            },
+          ]}
+          formData={formData}
+          setFormData={setFormData}
+          buttonText="Update Order Status"
+          onSubmit={handleUpdateStatus}
+        />
       </div>
     </DialogContent>
   );

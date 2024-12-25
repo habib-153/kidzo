@@ -56,13 +56,23 @@ export const addProductFormElements = [
     placeholder: "Enter product description",
   },
   {
+    label: "Sub-category",
+    name: "subcategory",
+    componentType: "select",
+    options: [
+      { id: "Clothing", label: "Clothing" },
+      { id: "Shoes", label: "Shoes" },
+    ],
+  },
+  {
     label: "Category",
     name: "category",
     componentType: "select",
     options: [
-      { id: "boys", label: "Boys" },
-      { id: "girls", label: "Girls" },
-      { id: "footwear", label: "Footwear" },
+      { id: "Boys", label: "Boys" },
+      { id: "Girls", label: "Girls" },
+      { id: "Winter", label: "Winter Collection" },
+      { id: "Summer", label: "Summer Collection" },
     ],
   },
   {
@@ -113,21 +123,26 @@ export const shoppingViewHeaderMenuItems = [
     path: "/shop/listing",
   },
   {
-    id: "boys",
-    label: "Boys",
+    id: "Clothing",
+    label: "Clothing",
     path: "/shop/listing",
   },
   {
-    id: "girls",
-    label: "Girls",
+    id: "Shoes",
+    label: "Shoes",
     path: "/shop/listing",
   },
 ];
 
 export const categoryOptionsMap = {
-  boys: "Boys",
-  girls: "Girls",
-  footwear: "Footwear",
+  Clothing: "Clothing",
+  Shoes: "Shoes",
+};
+export const subcategoryOptionsMap = {
+  Boys: "Boys",
+  Girls: "Girls",
+  Winter: "Winter Collection",
+  Summer: "Summer Collection",
 };
 
 export const brandOptionsMap = {
