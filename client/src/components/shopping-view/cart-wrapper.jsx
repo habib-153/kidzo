@@ -19,6 +19,7 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
           0
         )
       : 0;
+  console.log(cartItems);
 
   return (
     <SheetContent className="sm:max-w-md">

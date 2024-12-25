@@ -1,11 +1,5 @@
 /* eslint-disable no-unused-vars */
-import {
-  LogOut,
-  Menu,
-  Search,
-  ShoppingCart,
-  UserCog,
-} from "lucide-react";
+import { LogOut, Menu, Search, ShoppingCart, UserCog } from "lucide-react";
 import {
   Link,
   useLocation,
@@ -93,7 +87,7 @@ function HeaderRightContent() {
     dispatch(logoutUser());
   }
 
-  //console.log(cartItems);
+  console.log(cartItems);
 
   return (
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">

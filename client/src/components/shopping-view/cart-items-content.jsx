@@ -1,65 +1,70 @@
 /* eslint-disable react/prop-types */
+import { useDispatch } from "react-redux";
 import { Minus, Plus, Trash } from "lucide-react";
 import { Button } from "../ui/button";
-import { useDispatch } from "react-redux";
-import { deleteCartItem, updateCartQuantity } from "@/store/shop/cart-slice";
 import { useToast } from "../ui/use-toast";
+import { deleteCartItem, updateCartQuantity } from "@/store/shop/cart-slice";
 
 function UserCartItemsContent({ cartItem }) {
-  //const { cartItems } = useSelector((state) => state.shopCart);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
-  function handleUpdateQuantity(getCartItem, typeOfAction) {
-    const inventory = getCartItem.product.inventory.find(
-      (item) => item.size === getCartItem.size
-    );
-
-    if (typeOfAction === "plus" && getCartItem.quantity >= inventory.quantity) {
-      toast({
-        title: `Only ${inventory.quantity} items available`,
-        variant: "destructive",
-      });
-      return;
+  function handleUpdateQuantity(item, actionType) {
+    // Example check for max quantity
+    // You can also store available quantity in cartItem if needed
+    if (actionType === "plus") {
+      dispatch(
+        updateCartQuantity({
+          ...item,
+          quantity: item.quantity + 1,
+        })
+      );
+    } else if (actionType === "minus") {
+      if (item.quantity > 1) {
+        dispatch(
+          updateCartQuantity({
+            ...item,
+            quantity: item.quantity - 1,
+          })
+        );
+      }
     }
-    console.log(`cartItem ${cartItem}`);
-    dispatch(
-      updateCartQuantity({
-        productId: getCartItem.productId,
-        size: getCartItem.size,
-        quantity:
-          typeOfAction === "plus"
-            ? getCartItem.quantity + 1
-            : getCartItem.quantity - 1,
-      })
-    );
-    toast({
-      title: "Cart item updated",
-    });
   }
 
-  function handleCartItemDelete(getCartItem) {
-    dispatch(
-      deleteCartItem({
-        productId: getCartItem.productId,
-        size: getCartItem.size,
-      })
-    );
-    toast({
-      title: "Cart item deleted successfully",
-      variant: "destructive",
-    });
+  function handleDeleteItem(item) {
+    dispatch(deleteCartItem(item));
+    toast({ title: "Item removed from cart" });
   }
+  console.log(cartItem);
 
   return (
-    <div className="flex items-center space-x-4">
-      <img
-        src={cartItem?.product?.images[0]}
-        alt={cartItem?.product.name}
-        className="w-20 h-20 rounded object-cover"
-      />
+    <div className="flex items-start gap-4 p-4 border-b border-gray-200">
+      <div className="w-24 h-24 overflow-hidden rounded">
+        <img
+          src={cartItem?.image}
+          alt={cartItem?.name}
+          className="object-cover w-full h-full"
+        />
+      </div>
       <div className="flex-1">
-        <h3 className="font-extrabold">{cartItem?.product.name}</h3>
+        <h3 className="font-extrabold">{cartItem?.name}</h3>
+        <div className="text-sm text-neutral-600 mb-2 flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span>Color:</span>
+            <span
+              className="inline-block w-4 h-4 rounded-full border"
+              style={{ backgroundColor: cartItem?.color }}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span>Size:</span>
+            <span className="font-medium">{cartItem?.size}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span>Price:</span>
+            <span className="font-medium">৳{cartItem?.price}</span>
+          </div>
+        </div>
         <div className="flex items-center gap-2 mt-1">
           <Button
             variant="outline"
@@ -85,18 +90,17 @@ function UserCartItemsContent({ cartItem }) {
       </div>
       <div className="flex flex-col items-end">
         <p className="font-semibold">
-          ৳
-          {(
-            (cartItem.product.sale_price?.[cartItem.size] > 0
-              ? cartItem.product.sale_price[cartItem.size]
-              : cartItem.product.price[cartItem.size]) * cartItem.quantity
-          ).toFixed(2)}
+          ৳{(cartItem.price * cartItem.quantity).toFixed(2)}
         </p>
-        <Trash
-          onClick={() => handleCartItemDelete(cartItem)}
-          className="cursor-pointer mt-1"
-          size={20}
-        />
+        <Button
+          variant="destructive"
+          className="mt-2"
+          size="sm"
+          onClick={() => handleDeleteItem(cartItem)}
+        >
+          <Trash className="w-4 h-4 mr-1" />
+          Remove
+        </Button>
       </div>
     </div>
   );
