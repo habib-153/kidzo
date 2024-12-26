@@ -52,12 +52,14 @@ function ShoppingListing() {
   const { toast } = useToast();
 
   const categorySearchParam = searchParams.get("category");
+  const subcategorySearchParam = searchParams.get("subcategory");
 
   function handleSort(value) {
     setSort(value);
   }
 
   function handleFilter(getSectionId, getCurrentOption) {
+    console.log(getSectionId, getCurrentOption);
     let cpyFilters = { ...filters };
     const indexOfCurrentSection = Object.keys(cpyFilters).indexOf(getSectionId);
 
@@ -122,7 +124,7 @@ function ShoppingListing() {
   useEffect(() => {
     setSort("price-lowtohigh");
     setFilters(JSON.parse(sessionStorage.getItem("filters")) || {});
-  }, [categorySearchParam]);
+  }, [categorySearchParam, subcategorySearchParam]);
 
   useEffect(() => {
     if (filters && Object.keys(filters).length > 0) {

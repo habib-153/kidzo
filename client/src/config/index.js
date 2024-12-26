@@ -156,9 +156,14 @@ export const brandOptionsMap = {
 
 export const filterOptions = {
   category: [
-    { id: "boys", label: "Boys" },
-    { id: "girls", label: "Girls" },
-    { id: "footwear", label: "Footwear" },
+    { id: "Clothing", label: "Clothing" },
+    { id: "Shoes", label: "Shoes" },
+  ],
+  subcategory: [
+    { id: "Boys", label: "Boys" },
+    { id: "Girls", label: "Girls" },
+    { id: "Winter", label: "Winter Collection" },
+    { id: "Summer", label: "Summer Collection" },
   ],
   brand: [
     { id: "nike", label: "Nike" },
