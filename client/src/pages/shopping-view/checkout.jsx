@@ -26,9 +26,9 @@ function ShoppingCheckout() {
       ? cartItems.reduce(
           (sum, currentItem) =>
             sum +
-            (currentItem?.product?.sale_price?.[currentItem.size] > 0
-              ? currentItem?.product?.sale_price?.[currentItem.size]
-              : currentItem?.product?.price?.[currentItem.size]) *
+            (currentItem?.price > 0
+              ? currentItem?.price
+              : currentItem?.price?.[currentItem.size]) *
               currentItem?.quantity,
           0
         )
@@ -58,19 +58,17 @@ function ShoppingCheckout() {
       });
       return;
     }
-
     const orderData = {
       userId: user?.id || null,
       cartItems: cartItems.map((singleCartItem) => ({
         productId: singleCartItem?.productId,
-        title: singleCartItem?.product?.name,
-        image: singleCartItem?.product?.images[0],
-        price:
-          singleCartItem?.salePrice > 0
-            ? singleCartItem?.product?.sale_price?.[singleCartItem.size]
-            : singleCartItem?.product?.price?.[singleCartItem.size],
-        quantity: singleCartItem?.quantity,
+        variantId: singleCartItem?.variantId,
+        name: singleCartItem?.name,
+        color: singleCartItem?.color,
         size: singleCartItem?.size,
+        image: singleCartItem?.image,
+        price: singleCartItem?.price,
+        quantity: singleCartItem?.quantity,
       })),
       addressInfo: currentSelectedAddress,
       orderStatus: "pending",

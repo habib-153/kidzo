@@ -15,7 +15,54 @@ const createOrder = async (req, res) => {
       orderUpdateDate,
     } = req.body;
 
-    // Create the order
+    // 1) For each item, attempt to reduce inventory if your business logic requires it
+    //    This assumes:
+    //      - Product has "variants" containing multiple variant subdocs
+    //      - Each variant has "sizes" that store quantity for each size
+    // Adjust to match your schema or remove the quantity decrement logic if you do not track stock.
+
+    for (const item of cartItems) {
+      // Find the product by its _id
+      const productDoc = await Product.findById(item.productId);
+      if (!productDoc) {
+        return res.status(400).json({
+          success: false,
+          message: `Product not found for ID: ${item.productId}`,
+        });
+      }
+
+      // Locate the specific variant by _id
+      const variantDoc = productDoc.variants.id(item.variantId);
+      if (!variantDoc) {
+        return res.status(400).json({
+          success: false,
+          message: `Variant not found for ID: ${item.variantId}`,
+        });
+      }
+
+      // Locate the size record inside that variant
+      const sizeObj = variantDoc.sizes.find((sz) => sz.size === item.size);
+      if (!sizeObj) {
+        return res.status(400).json({
+          success: false,
+          message: `Size ${item.size} not found in variant ${item.variantId}`,
+        });
+      }
+
+      // Ensure there is enough stock
+      if (sizeObj.quantity < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Not enough stock for size ${item.size}. Available: ${sizeObj.quantity}`,
+        });
+      }
+
+      // Decrement quantity
+      sizeObj.quantity -= item.quantity;
+      await productDoc.save();
+    }
+
+    // 2) Create the order
     const newlyCreatedOrder = new Order({
       userId,
       cartItems,
@@ -28,70 +75,21 @@ const createOrder = async (req, res) => {
       orderUpdateDate,
     });
 
-    // Reduce the product quantity
-    for (let item of cartItems) {
-      let product = await Product.findById(item.productId);
-
-      if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: `Product not found: ${item.title}`,
-        });
-      }
-
-      const inventoryItem = product.inventory.find(
-        (inv) => inv.size === item.size
-      );
-
-      if (!inventoryItem) {
-        return res.status(404).json({
-          success: false,
-          message: `Size not found for product: ${item.title}`,
-        });
-      }
-
-      if (inventoryItem.quantity < item.quantity) {
-        return res.status(400).json({
-          success: false,
-          message: `Not enough stock for product: ${item.title} in size ${item.size}`,
-        });
-      }
-
-      // Ensure totalStock is a valid number
-      if (typeof product.totalStock !== 'number' || isNaN(product.totalStock)) {
-        product.totalStock = 0;
-      }
-
-      // Ensure item.quantity is a valid number
-      const quantityToReduce = parseInt(item.quantity, 10);
-      if (isNaN(quantityToReduce)) {
-        return res.status(400).json({
-          success: false,
-          message: `Invalid quantity for product: ${item.title}`,
-        });
-      }
-
-      inventoryItem.quantity -= quantityToReduce;
-      product.totalStock -= quantityToReduce;
-
-      await product.save();
-    }
-
     await newlyCreatedOrder.save();
 
-    res.status(201).json({
+    return res.status(200).json({
       success: true,
-      message: "Order created successfully",
+      message: "Order created successfully!",
       orderId: newlyCreatedOrder._id,
     });
   } catch (e) {
+    // You can console.log(e) for debugging
     res.status(500).json({
       success: false,
-      message: "Some error occurred!",
+      message: "Internal server error. Please try again later.",
     });
   }
 };
-
 
 const cancelOrder = async (req, res) => {
   try {

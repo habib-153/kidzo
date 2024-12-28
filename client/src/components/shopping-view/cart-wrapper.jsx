@@ -12,9 +12,7 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
       ? cartItems.reduce(
           (sum, currentItem) =>
             sum +
-            (currentItem?.product?.sale_price?.[currentItem.size] > 0
-              ? currentItem?.product?.sale_price?.[currentItem.size]
-              : currentItem?.product?.price?.[currentItem.size]) *
+            (currentItem?.price > 0 ? currentItem?.price : currentItem?.price) *
               currentItem?.quantity,
           0
         )
