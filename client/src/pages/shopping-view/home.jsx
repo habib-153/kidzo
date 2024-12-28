@@ -4,6 +4,7 @@ import {
   // BabyIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  FootprintsIcon,
   ShirtIcon,
   // CloudLightning,
   // Heater,
@@ -11,7 +12,6 @@ import {
   // Shirt,
   // ShirtIcon,
   // ShoppingBasket,
-  UmbrellaIcon,
   // WashingMachine,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,10 +29,10 @@ import { getFeatureImages } from "@/store/common-slice";
 import Footer from "@/components/shopping-view/footer";
 
 const categoriesWithIcon = [
-  // { id: "boys", label: "Boys", icon: ShirtIcon },
-  // { id: "girls", label: "Girls", icon: CloudLightning },
+  // { id: "Boys", label: "Boys", icon: ShirtIcon },
+  // { id: "Girls", label: "Girls", icon: CloudLightning },
   { id: "clothing", label: "Clothing", icon: ShirtIcon },
-  { id: "footwear", label: "Footwear", icon: UmbrellaIcon },
+  { id: "Shoes", label: "Shoes", icon: FootprintsIcon },
 ];
 
 // const brandsWithIcon = [
