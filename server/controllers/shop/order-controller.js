@@ -105,18 +105,17 @@ const cancelOrder = async (req, res) => {
     }
 
     // Restore the product quantity
-    for (let item of order.cartItems) {
-      let product = await Product.findById(item.productId);
-
-      if (product) {
-        const inventoryItem = product.inventory.find(
-          (inv) => inv.size === item.size
-        );
-
-        if (inventoryItem) {
-          inventoryItem.quantity += item.quantity;
-          product.totalStock += item.quantity;
-          await product.save();
+    for (const item of order.cartItems) {
+      const productDoc = await Product.findById(item.productId);
+      if (productDoc) {
+        const variantDoc = productDoc.variants.id(item.variantId);
+        if (variantDoc) {
+          const sizeObj = variantDoc.sizes.find(sz => sz.size === item.size);
+          if (sizeObj) {
+            sizeObj.quantity += item.quantity;
+            productDoc.totalStock += item.quantity;
+            await productDoc.save();
+          }
         }
       }
     }
@@ -185,9 +184,32 @@ const getOrderDetails = async (req, res) => {
   }
 };
 
+const deleteOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const order = await Order.findById(id);
+
+    // Delete the order
+    await Order.findByIdAndDelete(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Order deleted successfully"
+    });
+
+  } catch (error) {
+    console.error('Delete order error:', error);
+    res.status(500).json({
+      success: false,
+      message: "Error occurred while deleting order"
+    });
+  }
+};
 module.exports = {
   createOrder,
   cancelOrder,
   getAllOrdersByUser,
   getOrderDetails,
+  deleteOrder,
 };

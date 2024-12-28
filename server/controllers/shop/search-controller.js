@@ -19,6 +19,7 @@ const searchProducts = async (req, res) => {
         { name: regEx },
         { description: regEx },
         { category: regEx },
+        { subcategory: regEx },
         { tags: regEx },
         { 'inventory.size': regEx },
       ],
