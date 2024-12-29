@@ -67,3 +67,25 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer base {
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .print-content,
+    .print-content * {
+      visibility: visible !important;
+    }
+    .print-content {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+    @page {
+      size: auto;
+      margin: 20mm;
+    }
+  }
+}

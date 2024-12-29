@@ -1,7 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Dialog } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "../ui/dialog";
 import {
   Table,
   TableBody,
@@ -18,29 +26,37 @@ import {
   resetOrderDetails,
 } from "@/store/admin/order-slice";
 import { Badge } from "../ui/badge";
+import { useReactToPrint } from "react-to-print";
+import { QRCodeCanvas } from "qrcode.react";
 
 function AdminOrdersView() {
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
+  const [openInvoiceDialog, setOpenInvoiceDialog] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const invoiceRef = useRef(null);
   const { orderList, orderDetails } = useSelector((state) => state.adminOrder);
   const dispatch = useDispatch();
 
-  function handleFetchOrderDetails(getId) {
+  function handleViewDetails(getId) {
     dispatch(getOrderDetailsForAdmin(getId));
+    setOpenDetailsDialog(true);
   }
+
+  const handleViewInvoice = (orderId) => {
+    setSelectedOrderId(orderId);
+    dispatch(getOrderDetailsForAdmin(orderId));
+    setOpenInvoiceDialog(true);
+  };
 
   useEffect(() => {
     dispatch(getAllOrdersForAdmin());
   }, [dispatch]);
 
-  useEffect(() => {
-    if (orderDetails !== null) setOpenDetailsDialog(true);
-  }, [orderDetails]);
-
-  // console.log(orderDetails, "orderList");
-
-  useEffect(() => {
-    if (orderDetails !== null) setOpenDetailsDialog(true);
-  }, [orderDetails]);
+  const handlePrint = useReactToPrint({
+    content: () => invoiceRef.current,
+    documentTitle: `Invoice-${selectedOrderId}`,
+    removeAfterPrint: true,
+  });
 
   return (
     <Card>
@@ -80,22 +96,186 @@ function AdminOrdersView() {
                       </Badge>
                     </TableCell>
                     <TableCell>৳{orderItem?.totalAmount}</TableCell>
-                    <TableCell>
+                    <TableCell className="flex gap-2">
                       <Dialog
                         open={openDetailsDialog}
-                        onOpenChange={() => {
-                          setOpenDetailsDialog(false);
-                          dispatch(resetOrderDetails());
+                        onOpenChange={(open) => {
+                          setOpenDetailsDialog(open);
+                          if (!open) dispatch(resetOrderDetails());
                         }}
                       >
                         <Button
-                          onClick={() =>
-                            handleFetchOrderDetails(orderItem?._id)
-                          }
+                          onClick={() => handleViewDetails(orderItem._id)}
                         >
                           View Details
                         </Button>
                         <AdminOrderDetailsView orderDetails={orderDetails} />
+                      </Dialog>
+
+                      <Dialog
+                        open={openInvoiceDialog}
+                        onOpenChange={(open) => {
+                          setOpenInvoiceDialog(open);
+                          if (!open) {
+                            dispatch(resetOrderDetails());
+                            setSelectedOrderId(null);
+                          }
+                        }}
+                      >
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleViewInvoice(orderItem._id)}
+                          >
+                            Invoice
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent
+                          className="max-w-4xl max-h-[90vh] overflow-y-auto print-content"
+                          aria-describedby="invoice-description"
+                        >
+                          <DialogHeader>
+                            <DialogTitle>Order Invoice</DialogTitle>
+                            <DialogDescription id="invoice-description">
+                              Detailed invoice for the selected order.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div ref={invoiceRef} className="p-8 bg-white">
+                            {orderDetails && (
+                              <>
+                                <div className="flex justify-between items-start mb-8">
+                                  <div>
+                                    <h1 className="text-2xl font-bold mb-2">
+                                      Invoice
+                                    </h1>
+                                    <p className="text-gray-600">
+                                      Order #{orderDetails?._id}
+                                    </p>
+                                    <p className="text-gray-600">
+                                      Date:{" "}
+                                      {new Date(
+                                        orderDetails?.orderDate
+                                      ).toLocaleDateString()}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <img
+                                      src="/kidzo.png"
+                                      alt="Logo"
+                                      className="h-12 mb-2"
+                                    />
+                                    <p className="text-sm text-gray-600">
+                                      81/4A West Brahmondi,
+                                    </p>
+                                    <p className="text-sm text-gray-600">
+                                      Narsindi Sadar, Narsingdi
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-8 mb-8">
+                                  <div>
+                                    <h3 className="font-semibold mb-2">
+                                      Bill To:
+                                    </h3>
+                                    <p>{orderDetails?.addressInfo?.Name}</p>
+                                    <p>{orderDetails?.addressInfo?.address}</p>
+                                    <p>{orderDetails?.addressInfo?.city}</p>
+                                    <p>{orderDetails?.addressInfo?.phone}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <QRCodeCanvas
+                                      value={JSON.stringify({
+                                        orderId: orderDetails?._id,
+                                        customerName:
+                                          orderDetails?.addressInfo?.Name,
+                                        status: orderDetails?.orderStatus,
+                                        amount: orderDetails?.totalAmount,
+                                        date: orderDetails?.orderDate,
+                                      })}
+                                      size={100}
+                                      level={"H"}
+                                      marginSize={true}
+                                    />
+                                  </div>
+                                </div>
+                                <table className="w-full mb-8">
+                                  <thead>
+                                    <tr className="border-b">
+                                      <th className="text-left py-2">Item</th>
+                                      <th className="text-center py-2">Size</th>
+                                      <th className="text-center py-2">Color</th>
+                                      <th className="text-center py-2">
+                                        Quantity
+                                      </th>
+                                      <th className="text-right py-2">Price</th>
+                                      <th className="text-right py-2">Total</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {orderDetails?.cartItems?.map(
+                                      (item, index) => (
+                                        <tr key={index} className="border-b">
+                                          <td className="py-2">{item.name}</td>
+                                          <td className="text-center py-2">
+                                            {item.size}
+                                          </td>
+                                          <td className="text-center py-2">
+                                            <div
+                                              className="w-4 h-4 rounded-full inline-block"
+                                              style={{
+                                                backgroundColor: item.color,
+                                              }}
+                                            />
+                                          </td>
+                                          <td className="text-center py-2">
+                                            {item.quantity}
+                                          </td>
+                                          <td className="text-right py-2">
+                                            ৳{item.price}
+                                          </td>
+                                          <td className="text-right py-2">
+                                            ৳{item.price * item.quantity}
+                                          </td>
+                                        </tr>
+                                      )
+                                    )}
+                                  </tbody>
+                                  <tfoot>
+                                    <tr>
+                                      <td
+                                        colSpan="5"
+                                        className="text-right pt-4 font-semibold"
+                                      >
+                                        Total:
+                                      </td>
+                                      <td className="text-right pt-4 font-semibold">
+                                        ৳{orderDetails?.totalAmount}
+                                      </td>
+                                    </tr>
+                                  </tfoot>
+                                </table>
+                                <div className="border-t pt-4">
+                                  <p className="text-sm text-gray-600">
+                                    Payment Status:{" "}
+                                    {orderDetails?.paymentStatus}
+                                  </p>
+                                  <p className="text-sm text-gray-600">
+                                    Payment Method:{" "}
+                                    {orderDetails?.paymentMethod}
+                                  </p>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                          <DialogFooter>
+                            <Button
+                              onClick={handlePrint}
+                              disabled={!orderDetails}
+                            >
+                              Print Invoice
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
                       </Dialog>
                     </TableCell>
                   </TableRow>
