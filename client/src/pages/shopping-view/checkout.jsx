@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { createNewOrder } from "@/store/shop/order-slice";
 import { useToast } from "@/components/ui/use-toast";
 import { fetchAllAddresses } from "@/store/shop/address-slice";
+import { useNavigate } from "react-router-dom";
 
 function ShoppingCheckout() {
   const { cartItems } = useSelector((state) => state.shopCart);
@@ -14,6 +15,7 @@ function ShoppingCheckout() {
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
   const dispatch = useDispatch();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user?.id) {
@@ -84,6 +86,7 @@ function ShoppingCheckout() {
         toast({
           title: "Order placed successfully",
         });
+        navigate("/shop/home");
       } else {
         toast({
           title: "Failed to place order",
