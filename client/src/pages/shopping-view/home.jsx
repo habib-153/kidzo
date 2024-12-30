@@ -114,6 +114,12 @@ function ShoppingHome() {
     dispatch(getFeatureImages());
   }, [dispatch]);
 
+  console.log(
+    featuredProducts,
+    topSellingProducts,
+    productList,
+    productDetails
+  );
   return (
     <div className="flex flex-col min-h-screen">
       <div className="relative w-full h-[600px] overflow-hidden">
