@@ -70,22 +70,42 @@
 
 @layer base {
   @media print {
-    body * {
-      visibility: hidden;
+    body {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
-    .print-content,
-    .print-content * {
-      visibility: visible !important;
-    }
+    
     .print-content {
-      position: fixed;
-      left: 0;
-      top: 0;
-      width: 100%;
+      padding: 40px !important;
+      max-width: 800px !important;
+      margin: 0 auto !important;
+      background: white !important;
     }
-    @page {
-      size: auto;
-      margin: 20mm;
+    
+    .logo {
+      max-height: 48px !important;
+      width: auto !important;
+    }
+    
+    .color-sample {
+      width: 16px !important;
+      height: 16px !important;
+      border-radius: 50% !important;
+      display: inline-block !important;
+      vertical-align: middle !important;
+    }
+    
+    table {
+      page-break-inside: auto !important;
+    }
+    
+    tr {
+      page-break-inside: avoid !important;
+      page-break-after: auto !important;
+    }
+    
+    .no-print {
+      display: none !important;
     }
   }
 }
